@@ -1,0 +1,1627 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="第二大脑">
+  <meta name="theme-color" content="#060911">
+  <title>第二大脑 · 故事资产与认知工坊</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%230f172a%22 rx=%2220%22/><text y=%2270%22 x=%2215%22 font-size=%2270%22>🧠</text></svg>">
+  <!-- 屏蔽 Tailwind Play CDN 的生产环境控制台警告 -->
+  <script>
+    (function() {
+      const _warn = console.warn;
+      console.warn = function(...args) {
+        if (typeof args[0] === 'string' && args[0].includes('cdn.tailwindcss.com')) return;
+        _warn.apply(console, args);
+      };
+    })();
+  </script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    body { background-color: #060911; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .glass-card { background: rgba(12, 19, 35, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    .glass-card:hover { border-color: rgba(56, 189, 248, 0.35); }
+    .tab-active { background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; color: #38bdf8; }
+    .mode-btn-active { background: #0284c7 !important; color: #fff !important; font-weight: bold; }
+    .dim-btn:hover { border-color: #38bdf8; transform: translateY(-1px); }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- 顶部主导航 -->
+  <header class="border-b border-slate-800/90 px-3.5 sm:px-6 py-2.5 sm:py-3.5 flex flex-wrap items-center justify-between gap-2.5 glass-card sticky top-0 z-50">
+    <div class="flex items-center space-x-2.5">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 font-bold flex-shrink-0">
+        <i class="fa-solid fa-brain text-sm"></i>
+      </div>
+      <div>
+        <h1 class="text-sm font-bold text-white tracking-wide">第二大脑 Flagship</h1>
+        <p class="text-[10px] text-slate-400 hidden sm:block">工业化解构 · 维度仪表盘 · 头脑风暴 · 炼金闭环</p>
+      </div>
+    </div>
+
+    <nav class="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs overflow-x-auto max-w-full">
+      <button onclick="switchTab('home')" id="tab-home" class="tab-btn whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg font-medium tab-active transition">
+        <i class="fa-solid fa-pen-to-square mr-1"></i> 万能捕获
+      </button>
+      <button onclick="switchTab('assets')" id="tab-assets" class="tab-btn whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
+        <i class="fa-solid fa-layer-group mr-1"></i> 浏览积累
+      </button>
+      <button onclick="switchTab('brainstorm')" id="tab-brainstorm" class="tab-btn whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
+        <i class="fa-solid fa-comments text-amber-400 mr-1"></i> 头脑风暴
+      </button>
+      <button onclick="switchTab('gacha')" id="tab-gacha" class="tab-btn whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
+        <i class="fa-solid fa-dice mr-1"></i> 灵感炼金
+      </button>
+      <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
+        <i class="fa-solid fa-gear mr-1"></i> 设置
+      </button>
+    </nav>
+  </header>
+
+  <main class="flex-1 max-w-5xl w-full mx-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6">
+
+    <!-- 1. 首页：三模式切换 + 锁定作品专属仪表盘 + 单项维度原子化爆破 -->
+    <section id="view-home" class="space-y-4 sm:space-y-6">
+      <div class="glass-card p-4 sm:p-6 rounded-2xl space-y-4">
+        
+        <!-- 模式切换单选胶囊组 -->
+        <div class="flex items-center justify-between border-b border-slate-800/80 pb-3 flex-wrap gap-2">
+          <div class="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs overflow-x-auto max-w-full">
+            <button onclick="setInputMode('note')" id="mode-note" class="mode-btn whitespace-nowrap px-3 sm:px-3.5 py-1.5 rounded-lg mode-btn-active transition">
+              <i class="fa-solid fa-bolt mr-1 text-amber-400"></i> 灵感随记 / 明确长文
+            </button>
+            <button onclick="setInputMode('diary')" id="mode-diary" class="mode-btn whitespace-nowrap px-3 sm:px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition">
+              <i class="fa-solid fa-book-journal-whills mr-1 text-emerald-400"></i> 原生随笔 / 日记
+            </button>
+            <button onclick="setInputMode('book')" id="mode-book" class="mode-btn whitespace-nowrap px-3 sm:px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition">
+              <i class="fa-solid fa-book mr-1 text-indigo-400"></i> 模糊找书 / 名著逆向
+            </button>
+            <button onclick="setInputMode('video')" id="mode-video" class="mode-btn whitespace-nowrap px-3 sm:px-3.5 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 transition">
+              <i class="fa-solid fa-film mr-1 text-cyan-400"></i> 模糊找片 / 影视动画
+            </button>
+          </div>
+          <span class="text-[11px] text-slate-500" id="mode-tip">随手粘贴新闻、长文或想法，直接解析</span>
+        </div>
+
+        <!-- 日记专属标题与标签录入栏（在日记模式下展开） -->
+        <div id="diary-fields-bar" class="hidden flex gap-2">
+          <input id="diary-title-input" type="text" placeholder="日记标题（留空自动使用今日日期，如：2026-10-15 随笔日记）"
+                 class="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          <input id="diary-tags-input" type="text" placeholder="标签（如：随笔,灵感，逗号分隔）"
+                 class="w-48 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+        </div>
+
+        <!-- 文本输入与上传全本文档区域 -->
+        <div class="relative">
+          <textarea id="main-input" rows="5" oninput="updateWordCount()" placeholder="随手粘贴内容、小说段落、或点击下方按钮直接上传本地全本文档（.txt / .md）..."
+                    class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-4 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 leading-relaxed"></textarea>
+          
+          <div class="absolute right-3 bottom-3 flex items-center gap-2">
+            <input type="file" id="book-file-input" accept=".txt,.md,.text" class="hidden" onchange="handleFileUpload(event)">
+            <button onclick="document.getElementById('book-file-input').click()" type="button" class="bg-slate-800/90 hover:bg-slate-700 text-cyan-400 border border-cyan-800/70 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-lg">
+              <i class="fa-solid fa-file-arrow-up"></i> 上传全本文档 (.txt / .md)
+            </button>
+            <span id="file-word-count" class="hidden text-[11px] bg-slate-950 px-2.5 py-1.5 rounded-lg text-slate-400 border border-slate-800"></span>
+          </div>
+        </div>
+
+        <!-- 上传长文后出现的高能操作栏：直接一键锁定展开 6 大维度 -->
+        <div id="full-text-action-bar" class="hidden p-3 bg-gradient-to-r from-cyan-950/80 to-indigo-950/80 border border-cyan-600/50 rounded-xl flex items-center justify-between flex-wrap gap-2">
+          <div class="flex items-center gap-2 text-xs">
+            <i class="fa-solid fa-book-bookmark text-cyan-400 text-sm"></i>
+            <span class="text-white font-bold" id="uploaded-file-title">《已加载全本文档》</span>
+            <span class="text-slate-400 text-[11px]" id="uploaded-file-stat">已就绪</span>
+          </div>
+          <button onclick="lockUploadedDocument()" class="bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-cyan-500/20">
+            <i class="fa-solid fa-cubes"></i> 锁定此全本文档，展开 6 大解构维度仪表盘
+          </button>
+        </div>
+
+        <div class="flex justify-between items-center flex-wrap gap-2">
+          <div class="flex items-center gap-3 text-xs text-slate-500">
+            <span id="model-indicator-wrap">模型：<span class="text-cyan-400 font-medium" id="current-model-label">deepseek-chat</span></span>
+            <span id="upload-status" class="text-emerald-400 hidden"><i class="fa-solid fa-circle-check mr-1"></i> 文档就绪</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="saveDirectNote()" id="btn-quick-save-note" type="button" class="bg-emerald-900/60 hover:bg-emerald-800 text-emerald-300 border border-emerald-700/60 px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+              <i class="fa-solid fa-floppy-disk"></i> 免分析 · 直接存为日记
+            </button>
+            <button onclick="handleMainAction()" id="btn-main-action" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/20">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> 开始深度拆解
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 阶段1：候选项列表 -->
+      <div id="target-selection-wrapper" class="hidden glass-card p-5 rounded-2xl space-y-3 border border-indigo-500/40">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <h3 class="text-xs font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-indigo-400"></i> AI 猜想候选项（请核对勾选你要深度拆解的具体作品）
+          </h3>
+          <span class="text-[11px] text-slate-400">防止 AI 脑补搞错目标</span>
+        </div>
+        <div id="targets-list" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+      </div>
+
+      <!-- 阶段2：锁定作品后的专属解构维度仪表盘 -->
+      <div id="locked-target-dashboard" class="hidden glass-card p-6 rounded-2xl space-y-4 border border-cyan-500/40">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
+          <div>
+            <div class="text-[10px] text-cyan-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              Target Locked · 当前锁定焦点作品
+            </div>
+            <h3 class="text-base font-bold text-white mt-0.5" id="locked-title">《作品名》</h3>
+            <p class="text-xs text-slate-400" id="locked-meta">作者 / 导演 / 年份</p>
+          </div>
+          <button onclick="resetLockedTarget()" class="text-xs bg-slate-900 border border-slate-700 hover:border-slate-500 text-slate-300 px-3 py-1.5 rounded-lg transition">
+            <i class="fa-solid fa-rotate-left mr-1"></i> 重新选择作品
+          </button>
+        </div>
+
+        <div>
+          <div class="text-xs font-bold text-slate-300 mb-2.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-cubes text-cyan-400"></i> 选择专项维度进行原子化爆破（每个人物、每条伏笔均独立成卡）：
+          </div>
+          <!-- 6大预设维度按钮 -->
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+            <button onclick="analyzeDimension('character')" class="dim-btn p-3 rounded-xl bg-slate-900 border border-slate-800 text-center space-y-1 transition">
+              <i class="fa-solid fa-user-ninja text-cyan-400 text-base"></i>
+              <div class="text-xs font-bold text-white">人物档案</div>
+              <div class="text-[10px] text-slate-500">主角/死敌/配角立卡</div>
+            </button>
+            <button onclick="analyzeDimension('relations')" class="dim-btn p-3 rounded-xl bg-slate-900 border border-slate-800 text-center space-y-1 transition">
+              <i class="fa-solid fa-diagram-project text-indigo-400 text-base"></i>
+              <div class="text-xs font-bold text-white">关系图谱</div>
+              <div class="text-[10px] text-slate-500">博弈/对抗生态看板</div>
+            </button>
+            <button onclick="analyzeDimension('plot')" class="dim-btn p-3 rounded-xl bg-slate-900 border border-slate-800 text-center space-y-1 transition">
+              <i class="fa-solid fa-route text-amber-400 text-base"></i>
+              <div class="text-xs font-bold text-white">剧情结构</div>
+              <div class="text-[10px] text-slate-500">分卷/三幕式节拍</div>
+            </button>
+            <button onclick="analyzeDimension('foreshadow')" class="dim-btn p-3 rounded-xl bg-slate-900 border border-slate-800 text-center space-y-1 transition">
+              <i class="fa-solid fa-link text-emerald-400 text-base"></i>
+              <div class="text-xs font-bold text-white">伏笔链路</div>
+              <div class="text-[10px] text-slate-500">多条因果闭环轴</div>
+            </button>
+            <button onclick="analyzeDimension('world')" class="dim-btn p-3 rounded-xl bg-slate-900 border border-slate-800 text-center space-y-1 transition">
+              <i class="fa-solid fa-earth-asia text-blue-400 text-base"></i>
+              <div class="text-xs font-bold text-white">世界观</div>
+              <div class="text-[10px] text-slate-500">底层运行潜规则</div>
+            </button>
+            <button onclick="analyzeDimension('technique')" class="dim-btn p-3 rounded-xl bg-slate-900 border border-slate-800 text-center space-y-1 transition">
+              <i class="fa-solid fa-clapperboard text-rose-400 text-base"></i>
+              <div class="text-xs font-bold text-white">写作手法</div>
+              <div class="text-[10px] text-slate-500">反差蒙太奇与钩子</div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 自由输入定制深度挖掘 -->
+        <div class="pt-2 border-t border-slate-800/80">
+          <label class="block text-xs font-bold text-slate-300 mb-1.5 flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-plus text-amber-400"></i> 自定义深度挖掘（自由输入你最想从这本书/片里榨取的东西）：
+          </label>
+          <div class="flex gap-2">
+            <input id="custom-dim-input" type="text" placeholder="例如：“帮我拆解第1卷主角所有的借势套路” 或 “提取反派道德自洽的所有台词”..."
+                   class="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-cyan-500">
+            <button onclick="analyzeDimension('custom')" id="btn-custom-analyze" class="bg-amber-600 hover:bg-amber-500 text-white px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1">
+              <i class="fa-solid fa-wand-magic-sparkles"></i> 开始深挖
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 阶段3：产出候选区（原子化多卡片渲染，各自独立入库） -->
+      <div id="cards-container-wrapper" class="hidden space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2 flex-wrap gap-2">
+          <h3 class="text-xs font-bold text-slate-200 flex items-center gap-2" id="cards-wrapper-title">
+            <i class="fa-solid fa-layer-group text-cyan-400"></i> 本次深挖成果（每个条目独立立卡）
+          </h3>
+          <div class="flex items-center gap-2">
+            <span class="text-[11px] text-slate-500 hidden sm:inline" id="cards-wrapper-subtitle">未点击“确认入库”的卡片绝不污染数据库</span>
+            <button onclick="confirmSaveAll()" id="btn-save-all" class="text-xs bg-indigo-600/80 hover:bg-indigo-500 text-white px-3 py-1 rounded-lg transition font-medium flex items-center gap-1 shadow-sm">
+              <i class="fa-solid fa-check-double"></i> 本专项一键全入库
+            </button>
+          </div>
+        </div>
+        <div id="cards-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- 2. 浏览我的积累（支持卡片一键删除与二次确认） -->
+    <section id="view-assets" class="hidden space-y-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-compass text-cyan-400"></i> 浏览我的积累
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">方法、知识、笔记与创作资料，各有入口。</p>
+        </div>
+        <div class="text-xs bg-slate-900 border border-slate-800 rounded-lg px-3 py-1.5 text-slate-400">
+          全库累计 · 已人工验证
+        </div>
+      </div>
+
+      <!-- 四大核心分类磁贴 -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <button onclick="filterCategory('skill')" id="cat-skill" class="cat-card p-4 rounded-xl border border-slate-800 bg-slate-900/80 hover:border-cyan-500/50 text-left transition space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="w-8 h-8 rounded-lg bg-cyan-950 text-cyan-400 flex items-center justify-center text-sm border border-cyan-800/60">
+              <i class="fa-solid fa-wrench"></i>
+            </div>
+            <span class="text-xs font-bold text-cyan-400" id="cnt-skill">0 项</span>
+          </div>
+          <div>
+            <div class="text-sm font-bold text-white">我的技能</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">SOP步骤 · 场景调用</div>
+          </div>
+        </button>
+
+        <button onclick="filterCategory('knowledge')" id="cat-knowledge" class="cat-card p-4 rounded-xl border border-slate-800 bg-slate-900/80 hover:border-cyan-500/50 text-left transition space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="w-8 h-8 rounded-lg bg-indigo-950 text-indigo-400 flex items-center justify-center text-sm border border-indigo-800/60">
+              <i class="fa-solid fa-book-open"></i>
+            </div>
+            <span class="text-xs font-bold text-indigo-400" id="cnt-knowledge">0 项</span>
+          </div>
+          <div>
+            <div class="text-sm font-bold text-white">我的知识</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">理解观点 · 追溯来源</div>
+          </div>
+        </button>
+
+        <button onclick="filterCategory('notes')" id="cat-notes" class="cat-card p-4 rounded-xl border border-slate-800 bg-slate-900/80 hover:border-cyan-500/50 text-left transition space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="w-8 h-8 rounded-lg bg-amber-950 text-amber-400 flex items-center justify-center text-sm border border-amber-800/60">
+              <i class="fa-solid fa-book-journal-whills"></i>
+            </div>
+            <span class="text-xs font-bold text-amber-400" id="cnt-notes">0 项</span>
+          </div>
+          <div>
+            <div class="text-sm font-bold text-white">日记与随笔</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">原生记录 · 随笔摘录 · 思考火花</div>
+          </div>
+        </button>
+
+        <button onclick="filterCategory('creation')" id="cat-creation" class="cat-card p-4 rounded-xl border border-slate-800 bg-slate-900/80 hover:border-cyan-500/50 text-left transition space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="w-8 h-8 rounded-lg bg-emerald-950 text-emerald-400 flex items-center justify-center text-sm border border-emerald-800/60">
+              <i class="fa-solid fa-film"></i>
+            </div>
+            <span class="text-xs font-bold text-emerald-400" id="cnt-creation">0 项</span>
+          </div>
+          <div>
+            <div class="text-sm font-bold text-white">创作资料</div>
+            <div class="text-[11px] text-slate-400 mt-0.5">人设、伏笔、结构、图谱</div>
+          </div>
+        </button>
+      </div>
+
+      <!-- 搜索与筛选 -->
+      <div class="flex items-center justify-between pt-1">
+        <div class="flex items-center space-x-2 text-xs">
+          <span class="text-slate-400">分类：</span>
+          <span id="cur-cat-badge" class="px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold">全部资产</span>
+          <button onclick="filterCategory('all')" class="text-slate-500 hover:text-slate-300 ml-2">清除筛选</button>
+        </div>
+        <div class="relative w-64">
+          <input id="asset-search" type="text" oninput="renderAssets()" placeholder="搜索影视、人物、伏笔或方法..."
+                 class="w-full bg-slate-900 border border-slate-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+          <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-slate-500 text-xs"></i>
+        </div>
+      </div>
+
+      <!-- 资产网格 -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="asset-grid"></div>
+    </section>
+
+    <!-- 3. 头脑风暴（单一输入框 + 专家席位联席交锋 + 随时提取入库） -->
+    <section id="view-brainstorm" class="hidden space-y-6">
+      <div class="glass-card p-6 rounded-2xl space-y-4">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-comments text-amber-400"></i> 头脑风暴会客室
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">
+            把任何奇怪的设想、卡文困扰或现实议题抛出来。创作席、决策席、成长席与哲思席将自带跨学科顶级专业知识展开激辩讨论，你可以随时把击中你的观点一键沉淀入库！
+          </p>
+        </div>
+
+        <!-- 快捷调用我的日记/已沉淀资产栏 -->
+        <div class="flex items-center justify-between text-xs pb-1 flex-wrap gap-2">
+          <span class="text-slate-400 flex items-center gap-1.5 font-medium">
+            <i class="fa-solid fa-book-journal-whills text-emerald-400"></i>
+            快捷调用日记 / 积累资产作为风暴议题：
+          </span>
+          <select id="brainstorm-asset-select" onchange="insertAssetIntoBrainstorm()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white max-w-sm focus:outline-none focus:border-amber-500">
+            <option value="">-- 选择一篇日记或资产快速注入 --</option>
+          </select>
+        </div>
+
+        <textarea id="brainstorm-input" rows="4" placeholder="输入任何奇怪的想法或议题：&#10;• “我想写一个主角靠给富豪装穷骗取信任的故事，如何设计开局黄金反差与借力打力机制？”&#10;• “如果把微短剧的连环打脸心理学机制，套用到现实团队激励里，怎么做？”"
+                  class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-xs text-white focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
+
+        <div class="flex justify-between items-center">
+          <span class="text-xs text-slate-500">席位专家：<span class="text-amber-400">编剧 · 战略家 · 心理学者 · 哲人</span></span>
+          <button onclick="startBrainstorm()" id="btn-brainstorm" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20">
+            <i class="fa-solid fa-users"></i> 召集专家头脑风暴
+          </button>
+        </div>
+      </div>
+
+      <!-- 风暴讨论气泡流 -->
+      <div id="brainstorm-chat-wrapper" class="hidden space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <h3 class="text-xs font-bold text-slate-300 flex items-center gap-2">
+            <i class="fa-solid fa-bolt text-amber-400"></i> 专家激辩交锋记录（点击右侧按钮，随时将精彩观点存入你的资产库）
+          </h3>
+        </div>
+        <div id="brainstorm-chat" class="space-y-3"></div>
+      </div>
+    </section>
+
+    <!-- 4. 灵感炼金抽卡机（带全面动态 Loading） -->
+    <section id="view-gacha" class="hidden space-y-4">
+      <div class="glass-card p-6 rounded-2xl space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3 flex-wrap gap-2">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-dice-d20 text-amber-400"></i> 灵感炼金机（半定向合成 / 盲盒）
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">从你已确认入库的干净资产中调取原料，碰撞出完全未知的爆款大纲或分镜脚本。</p>
+          </div>
+          <button onclick="rollGacha()" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20">
+            <i class="fa-solid fa-rotate mr-1"></i> 启动炼金合成
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+          <div>
+            <label class="block text-slate-400 mb-1">【槽位 A · 核心骨架】（可选指定入库卡片，不选则纯随机）：</label>
+            <select id="gacha-anchor-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
+              <option value="">-- 🎲 纯随机盲盒抽取 --</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1">【期望产出形态】：</label>
+            <select id="gacha-form-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
+              <option value="random">🎲 完全随机盲盒</option>
+              <option value="novel">【SSR · 完整小说主支线大纲】</option>
+              <option value="script">【SR · 60秒短剧/短视频反转分镜】</option>
+              <option value="foreshadow">【SR · 跨时空伏笔因果链】</option>
+              <option value="quote">【R · 穿透力刺痛金句】</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="p-3 bg-slate-900/80 rounded-xl border border-slate-800 text-[11px] text-slate-400 flex items-center justify-between flex-wrap gap-2">
+          <div>本次炼中形态：<span id="gacha-type" class="text-amber-400 font-bold ml-1">-</span></div>
+          <div class="truncate max-w-md">原料：<span id="gacha-mats" class="text-slate-300 ml-1">-</span></div>
+        </div>
+      </div>
+
+      <div class="glass-card p-6 rounded-2xl space-y-3">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <h3 class="text-xs font-bold text-slate-300">合成生成结果</h3>
+          <button onclick="saveGachaResult()" id="btn-save-gacha" class="hidden text-xs bg-emerald-700/80 hover:bg-emerald-600 text-white px-3 py-1 rounded-lg transition font-medium">
+            <i class="fa-solid fa-arrow-turn-down mr-1"></i> 沉淀为创作资产（回流入库）
+          </button>
+        </div>
+        <pre id="gacha-result" class="whitespace-pre-wrap font-sans text-xs text-slate-200 leading-relaxed bg-slate-950 p-4 rounded-xl border border-slate-900">点击“启动炼金合成”开始生成创意...</pre>
+      </div>
+    </section>
+
+    <!-- 5. 设置 -->
+    <section id="view-settings" class="hidden space-y-4">
+      <div class="glass-card p-5 rounded-2xl max-w-lg mx-auto space-y-4">
+        <div>
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-key text-cyan-400"></i> 模型 API 设置
+          </h2>
+          <p class="text-[11px] text-slate-400 mt-1">配置 DeepSeek 官方或兼容接口，开箱即用</p>
+        </div>
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">Base URL</label>
+            <input id="api-base-url" type="text" value="https://api.deepseek.com" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-cyan-500">
+            <span class="text-[10px] text-slate-500 mt-0.5 block">官方默认：https://api.deepseek.com</span>
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">API Key</label>
+            <input id="api-key" type="password" placeholder="sk-..." class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-cyan-500">
+          </div>
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">模型名称（Model）</label>
+            <input id="api-model" type="text" value="deepseek-chat" placeholder="deepseek-chat" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-cyan-500">
+            <span class="text-[10px] text-slate-500 mt-0.5 block">官方标准对话模型：<code class="text-cyan-400 font-bold">deepseek-chat</code>（深度推理填 <code class="text-indigo-400">deepseek-reasoner</code>）</span>
+          </div>
+
+          <div id="test-conn-result" class="hidden text-xs p-3 rounded-xl border leading-relaxed"></div>
+
+          <div class="flex items-center gap-3 pt-2">
+            <button onclick="saveSettings()" class="bg-cyan-600 hover:bg-cyan-500 text-white px-5 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-cyan-600/20">
+              <i class="fa-solid fa-floppy-disk"></i> 保存设置并生效
+            </button>
+            <button type="button" onclick="testConnection()" id="btn-test-conn" class="bg-slate-800 hover:bg-slate-700 text-cyan-400 border border-cyan-800/60 px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-1.5">
+              <i class="fa-solid fa-satellite-dish"></i> 一键测试网络与连通性
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 原文与证据依据弹窗 -->
+  <div id="evidence-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="glass-card max-w-xl w-full p-6 rounded-2xl space-y-4 border border-cyan-500/40 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-quote-left text-cyan-400"></i> 原文与证据依据
+        </h3>
+        <button onclick="closeModal('evidence-modal')" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+      <div>
+        <div class="flex items-center gap-2 mb-2">
+          <span class="text-[10px] text-amber-400 bg-amber-950/80 border border-amber-900/60 px-2 py-0.5 rounded font-bold">精准原著溯源 · 真实场景对照</span>
+        </div>
+        <div class="mt-2 p-4 bg-slate-950 rounded-xl border border-slate-800 text-xs text-slate-300 leading-relaxed whitespace-pre-wrap font-sans" id="modal-evidence-text"></div>
+      </div>
+      <div class="text-[11px] text-slate-500 pt-1" id="modal-source-text">出处：-</div>
+    </div>
+  </div>
+
+  <!-- 关系网络可视化看板弹窗 -->
+  <div id="relations-modal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="glass-card max-w-2xl w-full p-6 rounded-2xl space-y-4 border border-indigo-500/40 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="text-sm font-bold text-white flex items-center gap-2">
+          <i class="fa-solid fa-diagram-project text-indigo-400"></i> 人物对抗与羁绊生态网
+        </h3>
+        <button onclick="closeModal('relations-modal')" class="text-slate-400 hover:text-white text-lg font-bold">&times;</button>
+      </div>
+      <div class="p-4 bg-slate-950 rounded-xl border border-slate-900 space-y-2.5 max-h-96 overflow-y-auto" id="relations-list"></div>
+    </div>
+  </div>
+
+  <script>
+    function formatContent(val) {
+      if (val === null || val === undefined) return '';
+      if (typeof val === 'string') return val;
+      if (Array.isArray(val)) {
+        return val.map(x => typeof x === 'object' ? formatContent(x) : ('• ' + x)).join('\n');
+      }
+      if (typeof val === 'object') {
+        return Object.entries(val).map(([k, v]) => {
+          const prefix = String(k).startsWith('【') ? k : `【${k}】：`;
+          const valStr = typeof v === 'object' ? formatContent(v) : v;
+          return `${prefix}\n${valStr}`;
+        }).join('\n\n');
+      }
+      return String(val);
+    }
+
+    let dbData = { assets: [] };
+    let tempCards = [];
+    let currentFilter = 'all';
+    let currentInputMode = 'note';
+    let matchedOptions = [];
+    let selectedTarget = null;
+    let uploadedFileText = '';
+    let uploadedFileName = '';
+    let lastGachaResult = null;
+    let loadingInterval = null;
+
+    function switchTab(t) {
+      document.querySelectorAll('.tab-btn').forEach(b => {
+        b.classList.remove('tab-active');
+        b.classList.add('text-slate-400');
+      });
+      document.getElementById('tab-' + t).classList.add('tab-active');
+      document.getElementById('tab-' + t).classList.remove('text-slate-400');
+
+      ['home', 'assets', 'brainstorm', 'gacha', 'settings'].forEach(v => {
+        document.getElementById('view-' + v).classList.add('hidden');
+      });
+      document.getElementById('view-' + t).classList.remove('hidden');
+
+      if (t === 'assets') renderAssets();
+      if (t === 'brainstorm') populateBrainstormAssetOptions();
+      if (t === 'gacha') populateGachaAnchorOptions();
+    }
+
+    function setInputMode(m) {
+      currentInputMode = m;
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        b.classList.remove('mode-btn-active');
+        b.classList.add('text-slate-400');
+      });
+      const activeBtn = document.getElementById('mode-' + m);
+      if (activeBtn) {
+        activeBtn.classList.add('mode-btn-active');
+        activeBtn.classList.remove('text-slate-400');
+      }
+
+      const diaryBar = document.getElementById('diary-fields-bar');
+      const quickSaveBtn = document.getElementById('btn-quick-save-note');
+      const modelIndicator = document.getElementById('model-indicator-wrap');
+      const mainBtn = document.getElementById('btn-main-action');
+
+      if (m === 'diary') {
+        if (diaryBar) diaryBar.classList.remove('hidden');
+        if (quickSaveBtn) quickSaveBtn.classList.add('hidden');
+        if (modelIndicator) modelIndicator.innerHTML = '<span class="text-emerald-400 font-medium flex items-center gap-1"><i class="fa-solid fa-shield-halved"></i> 免模型分析 · 原汁原味纯本地存储</span>';
+        mainBtn.className = 'bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-emerald-500/20';
+        mainBtn.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1"></i> 免分析 · 直接入库留存';
+      } else {
+        if (diaryBar) diaryBar.classList.add('hidden');
+        if (quickSaveBtn) {
+          if (m === 'note') quickSaveBtn.classList.remove('hidden');
+          else quickSaveBtn.classList.add('hidden');
+        }
+        const currentModel = localStorage.getItem('model') || 'deepseek-chat';
+        if (modelIndicator) modelIndicator.innerHTML = `模型：<span class="text-cyan-400 font-medium" id="current-model-label">${currentModel}</span>`;
+        mainBtn.className = 'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/20';
+        
+        const btnTexts = {
+          note: '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> 开始深度拆解',
+          book: '<i class="fa-solid fa-magnifying-glass mr-1"></i> 检索匹配候选图书',
+          video: '<i class="fa-solid fa-film mr-1"></i> 检索匹配候选影视'
+        };
+        mainBtn.innerHTML = btnTexts[m] || '<i class="fa-solid fa-wand-magic-sparkles mr-1"></i> 开始拆解';
+      }
+
+      const placeholders = {
+        note: '随手粘贴内容、小说段落、或点击右下角按钮直接上传本地全本文档（.txt / .md）...',
+        diary: '记录今天的真实心境、突发灵感、对话片段或未成形脑洞（无需经过 AI 拆解，100% 原汁原味入库，随时调入风暴/炼金）...',
+        book: '描述模糊记忆找书：例如“主角前期是占卜家，靠魔药晋升的克苏鲁网文” 或 “主角是瞎子但会心眼的仙侠”...',
+        video: '描述模糊镜头找片：例如“主角是一个很颓废的牛仔在宇宙抓赏金犯，结局比了个Bang” 或 “几个互不相识的人在暴风雪木屋互相试探的悬疑片”...'
+      };
+      const tips = {
+        note: '随手粘贴新闻、长文或直接上传全本文档解构',
+        diary: '原生随笔日记 · 零网络等待 · 不经过 AI 篡改 · 随时调用',
+        book: '模糊线索 -> 匹配候选书单 -> 锁定作品展开 6 大维度仪表盘',
+        video: '模糊镜头/台词 -> 匹配候选影视 -> 锁定作品展开 6 大维度仪表盘'
+      };
+
+      document.getElementById('main-input').placeholder = placeholders[m] || '';
+      document.getElementById('mode-tip').innerText = tips[m] || '';
+
+      document.getElementById('target-selection-wrapper').classList.add('hidden');
+      document.getElementById('locked-target-dashboard').classList.add('hidden');
+      document.getElementById('cards-container-wrapper').classList.add('hidden');
+    }
+
+    // 上传全本文档处理
+    function handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      uploadedFileName = file.name.replace(/\.[^/.]+$/, "");
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        uploadedFileText = e.target.result;
+        const textarea = document.getElementById('main-input');
+        // 如果文件极大，输入框预览前 1000 字以防浏览器文本框渲染卡顿，全量内容保存在 uploadedFileText 中
+        if (uploadedFileText.length > 3000) {
+          textarea.value = uploadedFileText.slice(0, 3000) + '\n\n...[全本文档共 ' + uploadedFileText.length.toLocaleString() + ' 字，已成功载入内存，可直接点击下方按钮一键锁定解构]...';
+        } else {
+          textarea.value = uploadedFileText;
+        }
+
+        updateWordCount(file.name, uploadedFileText.length);
+
+        // 亮起全本文档专属操作条
+        const bar = document.getElementById('full-text-action-bar');
+        bar.classList.remove('hidden');
+        document.getElementById('uploaded-file-title').innerText = '《' + uploadedFileName + '》';
+        document.getElementById('uploaded-file-stat').innerText = '全本文档已就绪 (' + uploadedFileText.length.toLocaleString() + ' 字)';
+      };
+      reader.readAsText(file);
+    }
+
+    function updateWordCount(fileName, len) {
+      const textarea = document.getElementById('main-input');
+      const count = len !== undefined ? len : textarea.value.length;
+      const badge = document.getElementById('file-word-count');
+      const status = document.getElementById('upload-status');
+
+      if (count > 0) {
+        badge.classList.remove('hidden');
+        badge.innerText = (fileName ? '📄 ' + fileName + ' | ' : '') + '共 ' + count.toLocaleString() + ' 字';
+        if (fileName) {
+          status.classList.remove('hidden');
+        }
+      } else {
+        badge.classList.add('hidden');
+        status.classList.add('hidden');
+      }
+    }
+
+    // 核心打通：将上传的全本文档一键锁定为焦点目标，直接展开 6 块仪表盘！
+    function lockUploadedDocument() {
+      if (!uploadedFileText) return alert('请先上传全本文档');
+      selectedTarget = {
+        title: '《' + uploadedFileName + '》',
+        meta: '本地全本文档解构 · 共 ' + uploadedFileText.length.toLocaleString() + ' 字',
+        summary: '以原著全文作为事实基准进行 6 维工业级叙事解构'
+      };
+
+      document.getElementById('target-selection-wrapper').classList.add('hidden');
+      document.getElementById('locked-title').innerText = selectedTarget.title;
+      document.getElementById('locked-meta').innerText = selectedTarget.meta;
+      document.getElementById('locked-target-dashboard').classList.remove('hidden');
+      document.getElementById('cards-container-wrapper').classList.add('hidden');
+      tempCards = [];
+
+      // 滚动平滑导航到仪表盘
+      document.getElementById('locked-target-dashboard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function handleMainAction() {
+      const text = document.getElementById('main-input').value.trim();
+      if (!text && !uploadedFileText) return alert('输入内容不能为空');
+
+      if (currentInputMode === 'diary') {
+        await saveDirectDiary();
+        return;
+      }
+
+      // 如果有上传的全本文档，优先建议用户锁定解构
+      if (uploadedFileText && uploadedFileText.length > 5000 && !selectedTarget) {
+        if (confirm('检测到你已载入长篇全本文档《' + uploadedFileName + '》，是否立即锁定并展开 6 大解构仪表盘？')) {
+          lockUploadedDocument();
+          return;
+        }
+      }
+
+      if (currentInputMode === 'note') {
+        executeDirectAnalyze(text);
+      } else {
+        await fetchMatchedTargets(currentInputMode, text);
+      }
+    }
+
+    async function fetchMatchedTargets(targetType, queryText) {
+      const btn = document.getElementById('btn-main-action');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> 正在匹配知识库...';
+
+      try {
+        const res = await fetch('/api/match_targets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            query: queryText,
+            target_type: targetType,
+            model: localStorage.getItem('model') || 'deepseek-chat',
+            api_key: localStorage.getItem('api_key') || '',
+            base_url: localStorage.getItem('base_url') || ''
+          })
+        });
+        const data = await res.json();
+        matchedOptions = data.options || [];
+        renderMatchedOptions();
+      } catch (e) {
+        alert('匹配失败: ' + e);
+      } finally {
+        btn.innerHTML = originalText;
+      }
+    }
+
+    function renderMatchedOptions() {
+      const wrapper = document.getElementById('target-selection-wrapper');
+      const container = document.getElementById('targets-list');
+      container.innerHTML = '';
+      wrapper.classList.remove('hidden');
+      document.getElementById('locked-target-dashboard').classList.add('hidden');
+      document.getElementById('cards-container-wrapper').classList.add('hidden');
+
+      matchedOptions.forEach((opt, idx) => {
+        const div = document.createElement('div');
+        div.className = 'glass-card p-4 rounded-xl border border-slate-800 space-y-2 hover:border-indigo-400/60 transition flex flex-col justify-between';
+        div.innerHTML = `
+          <div class="space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800">匹配度 ${opt.confidence || '高'}</span>
+              <span class="text-[10px] text-slate-500">选项 ${idx + 1}</span>
+            </div>
+            <h4 class="font-bold text-white text-sm mt-1">${opt.title}</h4>
+            <div class="text-[11px] text-slate-400">${opt.meta}</div>
+            <p class="text-xs text-slate-300 leading-relaxed pt-1">${opt.summary}</p>
+          </div>
+          <button onclick="lockTarget(${idx})" class="w-full mt-3 bg-indigo-600 hover:bg-indigo-500 text-white py-1.5 rounded-lg text-xs font-bold transition">
+            <i class="fa-solid fa-lock mr-1"></i> 确认是这部，锁定并展开解构仪表盘
+          </button>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function lockTarget(idx) {
+      selectedTarget = matchedOptions[idx];
+      document.getElementById('target-selection-wrapper').classList.add('hidden');
+      
+      document.getElementById('locked-title').innerText = selectedTarget.title;
+      document.getElementById('locked-meta').innerText = selectedTarget.meta + ' · ' + selectedTarget.summary;
+      document.getElementById('locked-target-dashboard').classList.remove('hidden');
+      document.getElementById('cards-container-wrapper').classList.add('hidden');
+      tempCards = [];
+    }
+
+    function resetLockedTarget() {
+      document.getElementById('locked-target-dashboard').classList.add('hidden');
+      document.getElementById('cards-container-wrapper').classList.add('hidden');
+      if (matchedOptions.length > 0) {
+        renderMatchedOptions();
+      }
+    }
+
+    const dimNames = {
+      character: '人物档案',
+      relations: '关系图谱',
+      plot: '剧情结构',
+      foreshadow: '伏笔链路',
+      world: '世界观潜规则',
+      technique: '写作手法与反差技巧',
+      custom: '自定义专项深挖'
+    };
+
+    // 核心打通：单项维度解构，每个专项独立展示该专项卡片，不堆叠历史旧卡片！
+    async function analyzeDimension(dim) {
+      if (!selectedTarget) return alert('请先锁定一部作品或上传全本文档');
+      let customPrompt = '';
+      if (dim === 'custom') {
+        customPrompt = document.getElementById('custom-dim-input').value.trim();
+        if (!customPrompt) return alert('请输入你想定制深挖的具体需求');
+      }
+
+      const wrapper = document.getElementById('cards-container-wrapper');
+      wrapper.classList.remove('hidden');
+      const titleEl = document.getElementById('cards-wrapper-title');
+      if (titleEl) {
+        titleEl.innerHTML = `<i class="fa-solid fa-spinner fa-spin text-cyan-400"></i> 正在解构【${dimNames[dim] || dim}】...`;
+      }
+      
+      const container = document.getElementById('cards-container');
+      container.innerHTML = '';
+      
+      const loadId = 'loading-' + Date.now();
+      const loadDiv = document.createElement('div');
+      loadDiv.id = loadId;
+      loadDiv.className = 'glass-card p-6 rounded-xl border border-cyan-500/40 text-center py-10 space-y-3 col-span-1 md:col-span-2 shadow-xl';
+      
+      const steps = [
+        `正在唤醒 DeepSeek 百万级上下文引擎，通读全书/全剧...`,
+        `正在精准扫描原著章节与标志性名场面证据...`,
+        `正在拆解 ${dim === 'character' ? '群像角色极性与内在矛盾' : dim === 'plot' ? '分卷与三幕式节拍' : dim === 'foreshadow' ? '多条伏笔因果回收闭环' : '专项动力学要素'}...`,
+        `正在规整原子化独立卡片并核验输出...`
+      ];
+      let stepIdx = 0;
+
+      loadDiv.innerHTML = `
+        <div class="flex justify-center items-center gap-2 text-cyan-400">
+          <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
+          <span class="text-sm font-bold tracking-wide">正在对《${selectedTarget.title}》执行【${dimNames[dim] || dim}】深度解构...</span>
+        </div>
+        <p id="breath-text" class="text-xs text-slate-400 font-medium transition duration-300">${steps[0]}</p>
+        <div class="text-[10px] text-slate-500">超长全文本可能需要 15~40 秒，请稍候...</div>
+      `;
+      container.appendChild(loadDiv);
+
+      if (loadingInterval) clearInterval(loadingInterval);
+      loadingInterval = setInterval(() => {
+        stepIdx = (stepIdx + 1) % steps.length;
+        const breathEl = document.getElementById('breath-text');
+        if (breathEl) breathEl.innerText = steps[stepIdx];
+      }, 4000);
+
+      try {
+        const res = await fetch('/api/analyze_dimension', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            target_title: selectedTarget.title,
+            target_meta: selectedTarget.meta,
+            dimension: dim,
+            custom_prompt: customPrompt,
+            full_text: uploadedFileText, // 将上传的长文全文传给后台
+            model: localStorage.getItem('model') || 'deepseek-chat',
+            api_key: localStorage.getItem('api_key') || '',
+            base_url: localStorage.getItem('base_url') || ''
+          })
+        });
+        const data = await res.json();
+        clearInterval(loadingInterval);
+        
+        // 关键修复：专项结果独立显示，不混杂历史专项卡片
+        tempCards = data.cards || (data.card ? [data.card] : []);
+        
+        // 自动识别已入库状态：根据标题和来源比对数据库，防重复入库
+        tempCards.forEach(c => {
+          const targetSource = c.source || selectedTarget.title;
+          const isAlreadyInDb = dbData.assets.some(a => a.title === c.title && a.source === targetSource);
+          if (isAlreadyInDb) c.isSaved = true;
+        });
+
+        if (titleEl) {
+          titleEl.innerHTML = `<i class="fa-solid fa-layer-group text-cyan-400"></i> 【${dimNames[dim] || dim}】拆解成果 (共 ${tempCards.length} 项)`;
+        }
+        renderTempCards();
+      } catch (e) {
+        clearInterval(loadingInterval);
+        container.innerHTML = '';
+        if (titleEl) {
+          titleEl.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-rose-400"></i> 【${dimNames[dim] || dim}】解构异常`;
+        }
+        alert('解构失败: ' + e);
+      }
+    }
+
+    async function executeDirectAnalyze(text) {
+      const btn = document.getElementById('btn-main-action');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> 正在深度解析随记...';
+
+      try {
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            content: text,
+            mode: 'note',
+            model: localStorage.getItem('model') || 'deepseek-chat',
+            api_key: localStorage.getItem('api_key') || '',
+            base_url: localStorage.getItem('base_url') || ''
+          })
+        });
+        const data = await res.json();
+        tempCards = data.cards || [];
+        tempCards.forEach(c => {
+          const isAlreadyInDb = dbData.assets.some(a => a.title === c.title);
+          if (isAlreadyInDb) c.isSaved = true;
+        });
+
+        const wrapper = document.getElementById('cards-container-wrapper');
+        wrapper.classList.remove('hidden');
+        const titleEl = document.getElementById('cards-wrapper-title');
+        if (titleEl) {
+          titleEl.innerHTML = `<i class="fa-solid fa-layer-group text-cyan-400"></i> 随记深度提炼成果 (共 ${tempCards.length} 项)`;
+        }
+        renderTempCards();
+      } catch (e) {
+        alert('解析失败: ' + e);
+      } finally {
+        btn.innerHTML = originalText;
+      }
+    }
+
+    function renderTempCards() {
+      const container = document.getElementById('cards-container');
+      container.innerHTML = '';
+
+      if (tempCards.length === 0) {
+        container.innerHTML = '<div class="col-span-1 md:col-span-2 text-center py-8 text-slate-500 text-xs">暂无产出内容</div>';
+        return;
+      }
+
+      tempCards.forEach((c, idx) => {
+        const div = document.createElement('div');
+        div.className = 'glass-card p-4 rounded-xl border border-slate-800 flex flex-col justify-between space-y-3';
+        
+        const hasRel = c.relations && c.relations.length > 0;
+        const relPreviewBtn = hasRel ? `
+          <button onclick="previewCardRelations(${idx})" class="text-[11px] text-indigo-400 hover:text-indigo-300 font-bold flex items-center gap-1">
+            <i class="fa-solid fa-diagram-project"></i> 查看关系网 (${c.relations.length}条关系)
+          </button>
+        ` : '';
+
+        // 双重防重复入库：对象自身标记 + 数据库全量实时比对
+        const targetSource = c.source || (selectedTarget ? selectedTarget.title : '万能输入拆解');
+        const isSaved = c.isSaved || dbData.assets.some(a => a.title === c.title && a.source === targetSource);
+        
+        const saveBtnHtml = isSaved ? `
+          <span class="text-xs bg-slate-800/90 text-slate-400 border border-slate-700/60 px-2.5 py-1 rounded font-medium flex items-center gap-1">
+            <i class="fa-solid fa-circle-check text-emerald-400"></i> 已留存
+          </span>
+        ` : `
+          <button onclick="confirmSave(${idx})" id="confirm-btn-${idx}" class="text-xs bg-emerald-700/80 hover:bg-emerald-600 text-white px-2.5 py-1 rounded transition font-medium flex items-center gap-1 shadow-sm">
+            <i class="fa-solid fa-check"></i> 确认入库
+          </button>
+        `;
+
+        div.innerHTML = `
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] px-2 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800 font-bold">${c.title}</span>
+              ${saveBtnHtml}
+            </div>
+            <div class="text-[10px] text-slate-400 bg-slate-950 p-2 rounded border border-slate-900">
+              <span class="text-slate-500 font-bold block mb-0.5">何时调用 / 适用场景：</span>
+              ${formatContent(c.scenario)}
+            </div>
+            <p class="text-xs text-slate-300 whitespace-pre-wrap leading-relaxed">${formatContent(c.content)}</p>
+            ${relPreviewBtn}
+            <div class="text-[11px] text-amber-200/80 bg-amber-950/40 p-2.5 rounded-lg border border-amber-900/50">
+              <span class="text-amber-400 font-bold block mb-1"><i class="fa-solid fa-quote-left mr-1"></i>原著证据依据（精准溯源）：</span>
+              ${formatContent(c.evidence)}
+            </div>
+          </div>
+          <div class="flex gap-1 flex-wrap pt-2">
+            ${(c.tags || []).map(t => `<span class="text-[10px] text-slate-400 bg-slate-900 px-1.5 py-0.5 rounded">#${t}</span>`).join('')}
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function previewCardRelations(idx) {
+      const c = tempCards[idx];
+      renderRelationsModal(c.relations, c.title);
+    }
+
+    async function confirmSave(idx) {
+      const card = tempCards[idx];
+      if (card.isSaved) return;
+
+      const targetSource = card.source || (selectedTarget ? selectedTarget.title : '万能输入拆解');
+      // 数据库严格去重
+      const alreadyExists = dbData.assets.some(a => a.title === card.title && a.source === targetSource);
+      if (alreadyExists) {
+        card.isSaved = true;
+        renderTempCards();
+        alert(`《${card.title}》此前已入库，无需重复添加！`);
+        return;
+      }
+
+      try {
+        await fetch('/api/asset/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: card.category || 'creation',
+            sub_type: card.sub_type || 'general',
+            title: card.title,
+            source: targetSource,
+            scenario: formatContent(card.scenario) || '通用场景',
+            content: formatContent(card.content),
+            evidence: formatContent(card.evidence) || '',
+            tags: card.tags || [],
+            relations: card.relations || []
+          })
+        });
+        card.isSaved = true;
+        await loadData();
+        renderTempCards();
+      } catch (e) {
+        alert('入库失败: ' + e);
+      }
+    }
+
+    async function confirmSaveAll() {
+      if (!tempCards || tempCards.length === 0) return alert('当前没有可入库的卡片');
+      
+      const unSaved = tempCards.map((c, idx) => ({ c, idx })).filter(item => {
+        const targetSource = item.c.source || (selectedTarget ? selectedTarget.title : '万能输入拆解');
+        return !item.c.isSaved && !dbData.assets.some(a => a.title === item.c.title && a.source === targetSource);
+      });
+
+      if (unSaved.length === 0) return alert('本专项的所有卡片均已在库中，无需重复入库！');
+
+      const btn = document.getElementById('btn-save-all');
+      const originText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> 正在入库...';
+      btn.disabled = true;
+
+      try {
+        for (const item of unSaved) {
+          const targetSource = item.c.source || (selectedTarget ? selectedTarget.title : '万能输入拆解');
+          await fetch('/api/asset/save', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              category: item.c.category || 'creation',
+              sub_type: item.c.sub_type || 'general',
+              title: item.c.title,
+              source: targetSource,
+              scenario: formatContent(item.c.scenario) || '通用场景',
+              content: formatContent(item.c.content),
+              evidence: formatContent(item.c.evidence) || '',
+              tags: item.c.tags || [],
+              relations: item.c.relations || []
+            })
+          });
+          item.c.isSaved = true;
+        }
+        await loadData();
+        renderTempCards();
+        alert(`本专项共 ${unSaved.length} 张新卡片已全部成功沉淀入库！`);
+      } catch (e) {
+        alert('入库发生异常: ' + e);
+      } finally {
+        btn.innerHTML = originText;
+        btn.disabled = false;
+      }
+    }
+
+    // 头脑风暴逻辑
+    async function startBrainstorm() {
+      const idea = document.getElementById('brainstorm-input').value.trim();
+      if (!idea) return alert('请输入想头脑风暴的想法或议题');
+      const btn = document.getElementById('btn-brainstorm');
+      const originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> 专家正在激烈交锋...';
+
+      const wrapper = document.getElementById('brainstorm-chat-wrapper');
+      const chat = document.getElementById('brainstorm-chat');
+      wrapper.classList.remove('hidden');
+      chat.innerHTML = '<div class="text-xs text-slate-400 py-4 text-center"><i class="fa-solid fa-circle-notch fa-spin mr-1 text-amber-400"></i> 各席位专家正在就议题推演碰撞中...</div>';
+
+      try {
+        const res = await fetch('/api/brainstorm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            idea: idea,
+            model: localStorage.getItem('model') || 'deepseek-chat',
+            api_key: localStorage.getItem('api_key') || '',
+            base_url: localStorage.getItem('base_url') || ''
+          })
+        });
+        const data = await res.json();
+        chat.innerHTML = '';
+        (data.rounds || []).forEach((r, idx) => {
+          const div = document.createElement('div');
+          div.className = 'glass-card p-4 rounded-xl border border-slate-800 space-y-2';
+          div.innerHTML = `
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold ${r.avatar_color}"><i class="fa-solid fa-user-tie mr-1.5"></i>${r.role}</span>
+              <button onclick="saveBrainstormSingle(${idx})" id="bs-btn-${idx}" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg transition flex items-center gap-1 font-medium">
+                <i class="fa-solid fa-plus text-amber-400"></i> 沉淀此观点入库
+              </button>
+            </div>
+            <p class="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">${r.content}</p>
+          `;
+          chat.appendChild(div);
+        });
+        window.currentBrainstormRounds = data.rounds;
+      } catch (e) {
+        chat.innerHTML = '<div class="text-xs text-rose-400 py-2">研讨失败: ' + e + '</div>';
+      } finally {
+        btn.innerHTML = originalText;
+      }
+    }
+
+    async function saveBrainstormSingle(idx) {
+      const item = window.currentBrainstormRounds[idx];
+      const idea = document.getElementById('brainstorm-input').value.trim();
+      try {
+        await fetch('/api/asset/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: 'notes',
+            sub_type: 'dialogue',
+            title: '风暴灵感：' + item.role,
+            source: '头脑风暴会客室',
+            scenario: '探讨议题：' + idea.slice(0, 25),
+            content: item.content,
+            evidence: '席位发言：' + item.role,
+            tags: ['头脑风暴', '灵感火花']
+          })
+        });
+        const btn = document.getElementById('bs-btn-' + idx);
+        btn.innerText = '已入库 ✓';
+        btn.className = 'text-[11px] bg-slate-950 text-slate-500 border border-slate-900 px-2.5 py-1 rounded-lg cursor-default';
+        btn.onclick = null;
+        await loadData();
+      } catch (e) {
+        alert('入库失败: ' + e);
+      }
+    }
+
+    // 免分析直接保存随笔日记
+    async function saveDirectDiary() {
+      const content = document.getElementById('main-input').value.trim();
+      if (!content) return alert('日记内容不能为空！');
+
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const todayStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+      let title = (document.getElementById('diary-title-input')?.value || '').trim();
+      if (!title) {
+        title = `${todayStr} 随笔日记`;
+      }
+      const rawTags = (document.getElementById('diary-tags-input')?.value || '').trim();
+      let tags = ['随笔', '日记'];
+      if (rawTags) {
+        rawTags.split(/[,，\s]+/).forEach(t => {
+          if (t && !tags.includes(t)) tags.push(t);
+        });
+      }
+
+      try {
+        const res = await fetch('/api/asset/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: 'notes',
+            sub_type: 'diary',
+            title: title,
+            source: '个人随笔日记',
+            scenario: '真实心境记录 / 突发灵感火花 / 未加工素材',
+            content: content,
+            evidence: `记录于 ${todayStr} ${pad(now.getHours())}:${pad(now.getMinutes())}`,
+            tags: tags,
+            relations: []
+          })
+        });
+        if (!res.ok) throw new Error('保存失败');
+        
+        document.getElementById('main-input').value = '';
+        if (document.getElementById('diary-title-input')) document.getElementById('diary-title-input').value = '';
+        if (document.getElementById('diary-tags-input')) document.getElementById('diary-tags-input').value = '';
+        updateWordCount();
+        await loadData();
+
+        alert(`日记《${title}》已成功直接入库留存！\n\n✓ 已收录至【浏览我的积累】中的“日记与随笔”分类\n✓ 您随时可在【头脑风暴】中一键调用作为研讨议题\n✓ 也可在【灵感炼金机】中选择作为核心创意骨架！`);
+      } catch (e) {
+        alert('入库失败: ' + e);
+      }
+    }
+
+    async function saveDirectNote() {
+      const content = document.getElementById('main-input').value.trim();
+      if (!content) return alert('输入内容不能为空！');
+      const now = new Date();
+      const pad = n => String(n).padStart(2, '0');
+      const todayStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+      const title = prompt('请确认/输入随笔日记标题：', `${todayStr} 随笔日记`);
+      if (!title) return;
+
+      try {
+        const res = await fetch('/api/asset/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: 'notes',
+            sub_type: 'diary',
+            title: title,
+            source: '个人随笔灵感',
+            scenario: '真实心境记录 / 原生素材积累',
+            content: content,
+            evidence: `记录于 ${todayStr} ${pad(now.getHours())}:${pad(now.getMinutes())}`,
+            tags: ['随笔', '日记', '免分析'],
+            relations: []
+          })
+        });
+        if (!res.ok) throw new Error('保存失败');
+        document.getElementById('main-input').value = '';
+        updateWordCount();
+        await loadData();
+        alert(`随笔《${title}》已免分析直接入库！\n随时可在【浏览我的积累】、【头脑风暴】或【灵感炼金机】中调取使用。`);
+      } catch (e) {
+        alert('保存失败: ' + e);
+      }
+    }
+
+    // 快捷调用资产/日记至头脑风暴
+    function sendAssetToBrainstorm(id) {
+      switchTab('brainstorm');
+      const select = document.getElementById('brainstorm-asset-select');
+      if (select) select.value = id;
+      const asset = (dbData.assets || []).find(a => a.id === id);
+      if (!asset) return;
+      const textarea = document.getElementById('brainstorm-input');
+      const isDiary = asset.sub_type === 'diary' || asset.category === 'notes';
+      textarea.value = `【调用${isDiary ? '随笔日记' : '资产模型'} · 《${asset.title}》】\n出处/记录：${asset.source}\n原文核心内容：\n${formatContent(asset.content)}\n\n请四位专家就此${isDiary ? '日记中的心理诉求、生活观察或灵感火花' : '资产模型内在逻辑'}展开碰撞：\n1. 商业编剧：如何将其提炼为具有戏剧张力与反转的情节钩子？\n2. 战略操盘手：如何提取背后的博弈杠杆与破局闭环？\n3. 心理学者：背后反映了怎样的深层情绪机制与痛点？\n4. 哲人：如何跳出日常表象洞悉荒诞或反直觉本质？`;
+      textarea.scrollIntoView({ behavior: 'smooth' });
+      textarea.focus();
+    }
+
+    // 快捷调用资产/日记至灵感炼金机
+    function sendAssetToGacha(id) {
+      switchTab('gacha');
+      populateGachaAnchorOptions();
+      const select = document.getElementById('gacha-anchor-select');
+      if (select) select.value = id;
+      document.getElementById('gacha-anchor-select').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // 动态填充头脑风暴资产调用下拉框
+    function populateBrainstormAssetOptions() {
+      const select = document.getElementById('brainstorm-asset-select');
+      if (!select) return;
+      const curVal = select.value;
+      select.innerHTML = '<option value="">-- 快捷选择日记/资产注入议题 --</option>';
+
+      const assets = dbData.assets || [];
+      const diaries = assets.filter(a => a.sub_type === 'diary' || a.category === 'notes');
+      const others = assets.filter(a => a.sub_type !== 'diary' && a.category !== 'notes');
+
+      if (diaries.length > 0) {
+        const grp = document.createElement('optgroup');
+        grp.label = '📖 原生随笔与日记';
+        diaries.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.id;
+          opt.innerText = `[${a.sub_type === 'diary' ? '日记' : '随笔'}] ${a.title}`;
+          grp.appendChild(opt);
+        });
+        select.appendChild(grp);
+      }
+
+      if (others.length > 0) {
+        const grp = document.createElement('optgroup');
+        grp.label = '🧩 技能/知识/创作资产';
+        others.forEach(a => {
+          const opt = document.createElement('option');
+          opt.value = a.id;
+          const tName = a.category === 'creation' ? '创作' : a.category === 'skill' ? '技能' : '知识';
+          opt.innerText = `[${tName}] ${a.title}`;
+          grp.appendChild(opt);
+        });
+        select.appendChild(grp);
+      }
+
+      if (curVal) select.value = curVal;
+    }
+
+    function insertAssetIntoBrainstorm() {
+      const select = document.getElementById('brainstorm-asset-select');
+      const id = select.value;
+      if (!id) return;
+      sendAssetToBrainstorm(id);
+    }
+
+    async function loadData() {
+      try {
+        const res = await fetch('/api/db');
+        dbData = await res.json();
+        updateCategoryCounts();
+        populateBrainstormAssetOptions();
+        populateGachaAnchorOptions();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function updateCategoryCounts() {
+      const assets = dbData.assets || [];
+      const skills = assets.filter(a => a.category === 'skill').length;
+      const knowledge = assets.filter(a => a.category === 'knowledge').length;
+      const notes = assets.filter(a => a.category === 'notes').length;
+      const creation = assets.filter(a => a.category === 'creation').length;
+
+      document.getElementById('cnt-skill').innerText = skills + ' 项';
+      document.getElementById('cnt-knowledge').innerText = knowledge + ' 项';
+      document.getElementById('cnt-notes').innerText = notes + ' 项';
+      document.getElementById('cnt-creation').innerText = creation + ' 项';
+    }
+
+    function filterCategory(cat) {
+      currentFilter = cat;
+      const labels = {
+        all: '全部资产',
+        skill: '我的技能',
+        knowledge: '我的知识',
+        notes: '日记与随笔',
+        creation: '创作资料'
+      };
+      document.getElementById('cur-cat-badge').innerText = labels[cat] || '全部资产';
+      renderAssets();
+    }
+
+    // 卡片删除并二次确认
+    async function deleteAssetCard(id, title) {
+      const confirmed = confirm(`确定要从知识库中永久删除这张卡片《${title}》吗？\n删除后不可恢复。`);
+      if (!confirmed) return;
+
+      try {
+        const res = await fetch('/api/asset/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id })
+        });
+        if (res.ok) {
+          await loadData();
+          renderAssets();
+        } else {
+          alert('删除失败');
+        }
+      } catch (e) {
+        alert('删除异常: ' + e);
+      }
+    }
+
+    function renderAssets() {
+      const grid = document.getElementById('asset-grid');
+      grid.innerHTML = '';
+      const query = (document.getElementById('asset-search').value || '').trim().toLowerCase();
+      let list = dbData.assets || [];
+
+      if (currentFilter !== 'all') {
+        list = list.filter(a => a.category === currentFilter);
+      }
+      if (query) {
+        list = list.filter(a => (a.title + a.content + (a.source||'')).toLowerCase().includes(query));
+      }
+
+      if (list.length === 0) {
+        grid.innerHTML = '<div class="text-xs text-slate-500 col-span-2 py-8 text-center">暂无资产，快去首页解构、记一篇日记或开一场头脑风暴吧。</div>';
+        return;
+      }
+
+      list.forEach(a => {
+        const div = document.createElement('div');
+        div.className = 'glass-card p-5 rounded-2xl border border-slate-800 space-y-3 flex flex-col justify-between';
+        
+        const isDiary = a.sub_type === 'diary';
+        const badgeColors = {
+          skill: 'bg-cyan-950 text-cyan-400 border-cyan-800',
+          knowledge: 'bg-indigo-950 text-indigo-400 border-indigo-800',
+          notes: isDiary ? 'bg-emerald-950 text-emerald-400 border-emerald-800' : 'bg-amber-950 text-amber-400 border-amber-800',
+          creation: 'bg-rose-950 text-rose-400 border-rose-800'
+        };
+        const catText = isDiary ? '随笔日记' : a.category === 'skill' ? '我的技能' : a.category === 'knowledge' ? '我的知识' : a.category === 'notes' ? '笔记摘录' : '创作资料';
+        const catBadge = `<span class="text-[10px] px-2 py-0.5 rounded border ${badgeColors[a.category] || 'bg-slate-900 text-slate-400'} font-bold">${isDiary ? '<i class="fa-solid fa-book-journal-whills mr-1"></i>' : ''}${catText}</span>`;
+
+        const hasRelations = a.relations && a.relations.length > 0;
+        const relationBtn = hasRelations ? `
+          <button onclick="viewRelations('${a.id}')" class="text-[11px] text-indigo-400 hover:text-indigo-300 flex items-center gap-1 font-medium">
+            <i class="fa-solid fa-diagram-project text-[10px]"></i> 关系图谱
+          </button>
+        ` : '';
+
+        // 右上角添加快捷调用按钮 + 依据 + Prompt + 删除
+        div.innerHTML = `
+          <div class="space-y-2">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              ${catBadge}
+              <div class="flex items-center space-x-2">
+                ${relationBtn}
+                <button onclick="sendAssetToBrainstorm('${a.id}')" class="text-[11px] text-amber-400 hover:text-amber-300 flex items-center gap-1 font-medium" title="将该日记/资产调入头脑风暴">
+                  <i class="fa-solid fa-comments text-[10px]"></i> 投入风暴
+                </button>
+                <button onclick="sendAssetToGacha('${a.id}')" class="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-medium" title="作为炼金机核心骨架">
+                  <i class="fa-solid fa-dice text-[10px]"></i> 投入炼金
+                </button>
+                <button onclick="viewEvidence('${a.id}')" class="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-medium">
+                  <i class="fa-solid fa-quote-left text-[10px]"></i> 依据
+                </button>
+                <button onclick="copyPromptSugar('${a.id}')" class="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1 font-medium">
+                  <i class="fa-solid fa-terminal text-[10px]"></i> Prompt
+                </button>
+                <button onclick="deleteAssetCard('${a.id}', '${a.title.replace(/'/g, "\\'")}')" class="text-[11px] text-slate-500 hover:text-rose-400 flex items-center gap-1 font-medium transition" title="删除该卡片">
+                  <i class="fa-solid fa-trash-can text-[10px]"></i>
+                </button>
+              </div>
+            </div>
+            <h4 class="font-bold text-white text-sm">${a.title}</h4>
+            <div class="text-[11px] text-slate-400 bg-slate-950/60 p-2.5 rounded-lg border border-slate-900">
+              <span class="text-slate-500 font-bold block mb-0.5">适用场景/何时调用：</span>
+              ${formatContent(a.scenario) || '通用场景'}
+            </div>
+            <div class="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">${formatContent(a.content)}</div>
+          </div>
+          <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[10px] text-slate-500">
+            <span>出处：${a.source || '外部输入'}</span>
+            <div class="flex gap-1 flex-wrap">
+              ${(a.tags || []).map(t => `<span class="bg-slate-900 px-1.5 py-0.5 rounded text-slate-400">#${t}</span>`).join('')}
+            </div>
+          </div>
+        `;
+        grid.appendChild(div);
+      });
+    }
+
+    function viewEvidence(id) {
+      const asset = (dbData.assets || []).find(a => a.id === id);
+      if (!asset) return;
+      document.getElementById('modal-evidence-text').innerText = formatContent(asset.evidence) || formatContent(asset.content) || '无原文记录';
+      document.getElementById('modal-source-text').innerText = '出处：' + (asset.source || '未标明');
+      document.getElementById('evidence-modal').classList.remove('hidden');
+    }
+
+    function viewRelations(id) {
+      const asset = (dbData.assets || []).find(a => a.id === id);
+      if (!asset || !asset.relations) return;
+      renderRelationsModal(asset.relations, asset.title);
+    }
+
+    function renderRelationsModal(relations, title) {
+      const list = document.getElementById('relations-list');
+      list.innerHTML = `<div class="text-xs text-slate-300 font-bold mb-2">以《${title}》为核心辐射的多维关系网络：</div>`;
+      relations.forEach(r => {
+        const item = document.createElement('div');
+        item.className = 'p-3 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-between text-xs hover:border-indigo-500/50 transition';
+        item.innerHTML = `
+          <div>
+            <span class="font-bold text-cyan-400">${r.source || '主体'}</span>
+            <i class="fa-solid fa-arrows-left-right text-slate-600 mx-2 text-[10px]"></i>
+            <span class="font-bold text-emerald-400">${r.target || '客体'}</span>
+            <span class="text-[10px] bg-indigo-950/80 px-2 py-0.5 rounded text-indigo-300 border border-indigo-800 ml-2 font-medium">${r.relation}</span>
+          </div>
+          <div class="text-slate-400 text-[11px] max-w-xs text-right">${r.desc}</div>
+        `;
+        list.appendChild(item);
+      });
+      document.getElementById('relations-modal').classList.remove('hidden');
+    }
+
+    function copyPromptSugar(id) {
+      const a = (dbData.assets || []).find(x => x.id === id);
+      if (!a) return;
+      const sugar = `【调用资产模型·${a.title}】\n请基于以下资产规则为我进行创作/决策推演：\n出处：${a.source}\n核心参数：\n${a.content}\n调用要求：请严格遵循此模型内在逻辑，展开高质量内容输出。`;
+      navigator.clipboard.writeText(sugar).then(() => {
+        alert('已复制该资产的【调用 Prompt 语法糖】到剪贴板！可以直接粘贴喂给任何 AI！');
+      }).catch(err => {
+        alert('复制内容：\n' + sugar);
+      });
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function populateGachaAnchorOptions() {
+      const select = document.getElementById('gacha-anchor-select');
+      if (!select) return;
+      const curVal = select.value;
+      select.innerHTML = '<option value="">-- 🎲 纯随机盲盒抽取 --</option>';
+      (dbData.assets || []).forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a.id;
+        const typeLabel = a.sub_type === 'diary' ? '日记' : a.category === 'notes' ? '随笔' : a.category === 'creation' ? '创作' : a.category === 'skill' ? '技能' : '知识';
+        opt.innerText = `[${typeLabel}] ${a.title}`;
+        select.appendChild(opt);
+      });
+      if (curVal) select.value = curVal;
+    }
+
+    // 灵感炼金机抽卡（加载动态提示）
+    async function rollGacha() {
+      const anchorId = document.getElementById('gacha-anchor-select').value;
+      const formType = document.getElementById('gacha-form-select').value;
+      const btn = document.querySelector('button[onclick="rollGacha()"]');
+      const originalBtnHTML = btn.innerHTML;
+      const resBox = document.getElementById('gacha-result');
+
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> 炼金炉运转中...';
+      resBox.innerText = '🧪 正在从你的资产库中调取原料，碰撞并推演高维创意中，请稍候 5~10 秒...';
+
+      try {
+        const res = await fetch('/api/gacha', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            anchor_asset_id: anchorId || null,
+            output_form: formType,
+            model: localStorage.getItem('model') || 'deepseek-chat',
+            api_key: localStorage.getItem('api_key') || '',
+            base_url: localStorage.getItem('base_url') || ''
+          })
+        });
+        const data = await res.json();
+        document.getElementById('gacha-type').innerText = data.type;
+        document.getElementById('gacha-mats').innerText = data.materials;
+        resBox.innerText = data.result;
+        
+        lastGachaResult = {
+          type: data.type,
+          result: data.result,
+          materials: data.materials
+        };
+        document.getElementById('btn-save-gacha').classList.remove('hidden');
+      } catch (e) {
+        resBox.innerText = '炼金失败，请检查设置中的 API Key 是否正确填写：' + e;
+        alert('炼金失败: ' + e);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalBtnHTML;
+      }
+    }
+
+    async function saveGachaResult() {
+      if (!lastGachaResult) return alert('暂无炼金成果');
+      try {
+        await fetch('/api/asset/save', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            category: 'creation',
+            sub_type: 'plot',
+            title: '炼金成果：' + lastGachaResult.type.slice(0, 12),
+            source: '灵感炼金机合成',
+            scenario: '基于已入库资产碰撞出的原创故事成果',
+            content: lastGachaResult.result,
+            evidence: '原料来源：' + lastGachaResult.materials,
+            tags: ['炼金成果', '原创大纲', '回流闭环']
+          })
+        });
+        alert('炼金产物已成功回流入库，进入【创作资料】！');
+        await loadData();
+      } catch (e) {
+        alert('沉淀失败: ' + e);
+      }
+    }
+
+    async function testConnection() {
+      const baseUrl = document.getElementById('api-base-url').value.trim();
+      const apiKey = document.getElementById('api-key').value.trim();
+      const model = document.getElementById('api-model').value.trim() || 'deepseek-chat';
+      const btn = document.getElementById('btn-test-conn');
+      const resBox = document.getElementById('test-conn-result');
+      if (!apiKey) {
+        alert('请先输入 API Key 再进行测试！');
+        document.getElementById('api-key').focus();
+        return;
+      }
+
+      const originText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> 测试中...';
+      btn.disabled = true;
+      resBox.className = 'hidden';
+
+      try {
+        const res = await fetch('/api/test_connection', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: 'test', api_key: apiKey, base_url: baseUrl, model: model })
+        });
+        const data = await res.json();
+        resBox.classList.remove('hidden');
+        if (data.status === 'ok') {
+          resBox.className = 'text-xs p-3 rounded-xl border border-emerald-500/40 bg-emerald-950/40 text-emerald-300';
+          resBox.innerHTML = '<i class="fa-solid fa-circle-check mr-1.5 text-emerald-400"></i>' + data.message;
+        } else {
+          resBox.className = 'text-xs p-3 rounded-xl border border-rose-500/40 bg-rose-950/40 text-rose-300';
+          resBox.innerHTML = '<i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-400"></i>' + data.message;
+        }
+      } catch (e) {
+        resBox.classList.remove('hidden');
+        resBox.className = 'text-xs p-3 rounded-xl border border-rose-500/40 bg-rose-950/40 text-rose-300';
+        resBox.innerHTML = '<i class="fa-solid fa-circle-xmark mr-1.5 text-rose-400"></i> 本地服务请求异常: ' + e;
+      } finally {
+        btn.innerHTML = originText;
+        btn.disabled = false;
+      }
+    }
+
+    function saveSettings() {
+      const baseUrl = document.getElementById('api-base-url').value.trim();
+      const apiKey = document.getElementById('api-key').value.trim();
+      let model = document.getElementById('api-model').value.trim() || 'deepseek-chat';
+      if (model === 'deepseek-flash') model = 'deepseek-chat';
+
+      localStorage.setItem('base_url', baseUrl);
+      localStorage.setItem('api_key', apiKey);
+      localStorage.setItem('model', model);
+
+      document.getElementById('current-model-label').innerText = model;
+      alert('配置已生效！当前默认模型：' + model);
+    }
+
+    window.onload = () => {
+      if (localStorage.getItem('base_url')) document.getElementById('api-base-url').value = localStorage.getItem('base_url');
+      if (localStorage.getItem('api_key')) document.getElementById('api-key').value = localStorage.getItem('api_key');
+      let m = localStorage.getItem('model');
+      if (!m || m === 'deepseek-flash') m = 'deepseek-chat';
+      localStorage.setItem('model', m);
+      document.getElementById('api-model').value = m;
+      document.getElementById('current-model-label').innerText = m;
+      loadData();
+    };
+  </script>
+</body>
+</html>
