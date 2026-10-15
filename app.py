@@ -274,6 +274,14 @@ class BrainstormRequest(BaseModel):
     api_key: Optional[str] = None
     base_url: Optional[str] = None
 
+class BrainstormChatRequest(BaseModel):
+    message: str
+    context_doc: Optional[str] = ""
+    history: List[Dict[str, Any]] = Field(default_factory=list)
+    model: Optional[str] = "deepseek-chat"
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
+
 class GachaRequest(BaseModel):
     anchor_asset_id: Optional[str] = None
     output_form: Optional[str] = "random"
@@ -476,7 +484,32 @@ def clean_and_parse_json(raw_text: str) -> List[Dict[str, Any]]:
 
     return extracted
 
-@app.get("/favicon.ico", include_in_schema=False)
+def clean_and_parse_dict(raw_text: str) -> Optional[Dict[str, Any]]:
+    if not raw_text:
+        return None
+    text = raw_text.strip()
+    if "```json" in text:
+        text = text.split("```json")[1].split("```")[0].strip()
+    elif "```" in text:
+        text = text.split("```")[1].split("```")[0].strip()
+
+    try:
+        data = json.loads(text, strict=False)
+        if isinstance(data, dict):
+            return data
+    except Exception:
+        pass
+
+    s = text.find("{")
+    e = text.rfind("}")
+    if s != -1 and e != -1 and e > s:
+        try:
+            data = json.loads(text[s:e+1], strict=False)
+            if isinstance(data, dict):
+                return data
+        except Exception:
+            pass
+    return None
 async def favicon():
     return Response(status_code=204)
 
@@ -909,6 +942,227 @@ async def run_brainstorm(req: BrainstormRequest):
         ]
 
     return {"rounds": rounds}
+
+@app.post("/api/brainstorm/chat")
+async def brainstorm_chat(req: BrainstormChatRequest, request: Request):
+    user_id = extract_user_id(request)
+    check_space_access(user_id, request)
+
+    msg = req.message.strip()
+    if not msg and not req.context_doc:
+        raise HTTPException(status_code=400, detail="对话内容或复盘材料不能为空")
+
+    history_snippets = []
+    for h in req.history[-6:]:
+        r = h.get("role", "user")
+        c = h.get("content", "")
+        if r == "user":
+            history_snippets.append(f"【用户提出/反驳】：{c}")
+        elif r == "council":
+            history_snippets.append(f"【圆桌专家发言】：{c}")
+
+    history_text = "\n".join(history_snippets) if history_snippets else "（新开启的复盘对话）"
+
+    doc_context = ""
+    if req.context_doc and req.context_doc.strip():
+        clipped_doc = req.context_doc.strip()[:15000]
+        doc_context = f"\n\n【用户上传的附加复盘剧本/大纲材料】：\n{clipped_doc}\n"
+
+    prompt = f"""你是由5位风格鲜明、跨越全生命周期的顶级智囊构成的【AI 专家圆桌复盘委员会】。
+当前研讨历史脉络：
+{history_text}
+{doc_context}
+用户最新抛出的内容/复盘线索/反驳质疑：
+"{msg}"
+
+【研讨核心工作准则】：
+1. 【作品模糊溯源与全案检索】：
+   - 如果用户提到任何真实存在的具体作品（如剧本杀《年轮》《苍岐》《搞钱》《须臾》《死者在幻夜中醒来》、综艺《明星大侦探》《极限挑战》《大侦探》《密室大逃脱》、热门游戏《艾尔登法环》《底特律:变人》《赛博朋克2077》、影视动画或真实社会大案/小红书热点）：
+   - 充分调动你的海量知识库，主动调取并精准定位该作品的【核心诡计手法】、【作案时间差/伪证链】、【高光博弈反差】、【规则破坏机制】、【标志性名场面】进行硬核复盘拆解！
+   - 即使用户只说了模糊的名字或一句话，也要以行家的敏锐度，把该作品最封神、最精彩的底层机制还原出来。
+2. 【高情商机智反驳（绝不人身攻击，幽默且充满干货）】：
+   - 如果用户重点引用了某个席位（如 `@【5岁小孩】` 或 `@【80岁老者】`）或提出了质疑反驳：
+   - 该席位专家必须优先正面回应，展现各自独特、生动且幽默的人设性格（5岁小孩天真委屈又一语扎心，80岁老者看透世态慈祥通透，星座大师从心理防卫归因切入，老辣编剧拍大腿兴奋改戏，战略家冷静列出博弈成本）；
+   - 严禁任何粗鄙、人身攻击词汇，完全是对事不对人的智慧交锋！
+3. 【五大常驻席位人设】：
+   - 席位 1：【🎬 主创席·老辣编剧】（avatar_color: "text-rose-400"）
+     聚焦：黄金前3秒钩子、视听戏剧冲突、叙事视角反转、观众情绪过山车与爽点痛点。
+   - 席位 2：【♟️ 决策席·战略操盘手】（avatar_color: "text-cyan-400"）
+     聚焦：底层博弈论、利益链捆绑、风险隔离、单向契约、压哨背叛与现实借力打力闭环。
+   - 席位 3：【🔮 玄机席·星座/MBTI大师】（avatar_color: "text-purple-400"）
+     聚焦：星座星盘特质、MBTI人格暗面（如INTJ隐忍/ENFP黑化）、人设隐秘动机与宿命因果。
+   - 席位 4：【🎈 纯真席·5岁小孩】（avatar_color: "text-amber-400"）
+     聚焦：天真可爱、零成人阅历、童言无忌、用最纯粹的儿童直觉一语戳破大人的套路与皇帝新装。
+   - 席位 5：【🍵 岁月席·80岁老者】（avatar_color: "text-emerald-400"）
+     聚焦：活了八十年阅尽沧海桑田、生死百态、人间悲悯、看透名利荒诞，直指人心深处放不下的执念。
+
+【输出格式要求】：
+严格输出合法的 JSON 对象，格式如下：
+{{
+  "detected_work": "识别出的作品名（如：剧本杀《年轮》）或'原创灵感脑洞'",
+  "detected_hint": "推测作品一句话简介（如：经典硬核推理剧本杀《年轮》，核心在于时间线伪证与视角盲区闭环）",
+  "council_topic": "一句话提炼本次交锋的核心焦点",
+  "speeches": [
+    {{
+      "expert_role": "🎬 主创席·老辣编剧",
+      "avatar_color": "text-rose-400",
+      "dialogue": "编剧视角的生动发言，老辣直接，直击戏剧高光...",
+      "card": {{
+        "title": "提炼资产标题（8-16字，如：黄金前三秒反差与叙事视角欺骗）",
+        "category": "钩子",
+        "content": "抽离出来的可复用创作法则（80-150字）...",
+        "scenario": "反转设计、悬疑短剧、名场面开局",
+        "source": "作品名",
+        "evidence": "剧情或名场面依据",
+        "tags": ["反差钩子", "叙事反转"]
+      }}
+    }},
+    {{
+      "expert_role": "♟️ 决策席·战略操盘手",
+      "avatar_color": "text-cyan-400",
+      "dialogue": "操盘手视角的利益与博弈剖析...",
+      "card": {{
+        "title": "资产标题（如：单向契约陷阱与压哨背叛机制）",
+        "category": "对抗",
+        "content": "抽离出来的博弈/利益法则...",
+        "scenario": "阵营战、利益分配、社交博弈",
+        "source": "作品名",
+        "evidence": "博弈名场面证据",
+        "tags": ["利益博弈", "背叛机制"]
+      }}
+    }},
+    {{
+      "expert_role": "🔮 玄机席·星座/MBTI大师",
+      "avatar_color": "text-purple-400",
+      "dialogue": "星座星盘与MBTI暗面动机剖析...",
+      "card": {{
+        "title": "资产标题（如：INTJ隐忍型人格的代偿性宿命）",
+        "category": "动机",
+        "content": "抽离出来的性格与宿命动机法则...",
+        "scenario": "人设塑造、黑化动机、深层心理防御",
+        "source": "作品名",
+        "evidence": "角色心理表现依据",
+        "tags": ["MBTI", "性格暗面", "人设玄机"]
+      }}
+    }},
+    {{
+      "expert_role": "🎈 纯真席·5岁小孩",
+      "avatar_color": "text-amber-400",
+      "dialogue": "天真软萌的童言发言，直击大人的逻辑盲区...",
+      "card": {{
+        "title": "资产标题（如：儿童纯粹直觉与皇帝新装法则）",
+        "category": "规则",
+        "content": "用最直白的直觉推导出的反常识本质...",
+        "scenario": "破除思维定势、降维幽默、直觉解谜",
+        "source": "作品名",
+        "evidence": "天真直觉对应的真实破绽",
+        "tags": ["童言直觉", "反套路"]
+      }}
+    }},
+    {{
+      "expert_role": "🍵 岁月席·80岁老者",
+      "avatar_color": "text-emerald-400",
+      "dialogue": "看尽人间冷暖的慈祥沧桑发言，句句入骨...",
+      "card": {{
+        "title": "资产标题（如：执念的虚妄与生命因果轮回）",
+        "category": "世界观",
+        "content": "抽离出来的生命阅历与沉痛洞察法则...",
+        "scenario": "终极立意、悲剧内核、历史沉淀",
+        "source": "作品名",
+        "evidence": "岁月悲悯的现实投射",
+        "tags": ["人生哲思", "深层立意"]
+      }}
+    }}
+  ],
+  "council_summary": "圆桌专家合议终极落地方案，或下一步演化指引"
+}}
+注意：不要输出任何 markdown 格式标记（如 ```json），只输出纯 JSON！"""
+
+    res = await call_llm(prompt, req.api_key, req.base_url, req.model, timeout_sec=120.0)
+    data = clean_and_parse_dict(res)
+
+    if not data or not isinstance(data, dict) or not data.get("speeches"):
+        detected = "作品复盘" if any(k in msg for k in ["剧本杀", "综艺", "电影", "游戏", "年轮"]) else "原创脑洞探讨"
+        data = {
+            "detected_work": detected,
+            "detected_hint": f"针对『{msg[:25]}』的核心机制深度多维复盘",
+            "council_topic": f"针对『{msg[:30]}』的深度多维复盘",
+            "speeches": [
+                {
+                    "expert_role": "🎬 主创席·老辣编剧",
+                    "avatar_color": "text-rose-400",
+                    "dialogue": f"针对『{msg}』：前3秒必须把极端反差砸在脸上！制造双向信息差，让人物在谎言里越陷越深，反转才足够炸裂！",
+                    "card": {
+                        "title": "黄金前三秒反差与叙事视角欺骗",
+                        "category": "钩子",
+                        "content": "利用观众对‘既定事实’的盲信作为障眼法，主视角的隐瞒正是揭开反转时最大震撼的来源。",
+                        "scenario": "剧情高潮设计、反派反转、爽点爆发",
+                        "source": detected,
+                        "evidence": "受众情绪震荡与视角反转节点",
+                        "tags": ["反差钩子", "叙事反转"]
+                    }
+                },
+                {
+                    "expert_role": "♟️ 决策席·战略操盘手",
+                    "avatar_color": "text-cyan-400",
+                    "dialogue": "光有剧情还不够，底层博弈才是骨架！表面建立不可破的利益同盟，但在倒计时最后一刻完成背叛，这才是利益最大化。",
+                    "card": {
+                        "title": "单向契约陷阱与压哨背叛机制",
+                        "category": "对抗",
+                        "content": "表面建立绝对同盟，将关键决定权拖入倒计时最后一刻，利用规则盲区完成背叛以实现通吃。",
+                        "scenario": "阵营博弈、谍战交锋、真人秀赛制",
+                        "source": detected,
+                        "evidence": "利益博弈与背叛闭环",
+                        "tags": ["利益博弈", "背叛机制"]
+                    }
+                },
+                {
+                    "expert_role": "🔮 玄机席·星座/MBTI大师",
+                    "avatar_color": "text-purple-400",
+                    "dialogue": "从人设心理学看，这个角色的 INTJ 属性极强！隐忍、理性却偏执，表面是为了大局，骨子里是天蝎座复仇的因果还债。",
+                    "card": {
+                        "title": "INTJ隐忍型人格的代偿性宿命",
+                        "category": "动机",
+                        "content": "高智商角色在压抑童年后形成极端的逻辑自洽，一切疯狂行为在他们内心都是正义的因果报偿。",
+                        "scenario": "人设塑造、黑化动机、深层心理防御",
+                        "source": detected,
+                        "evidence": "性格与星盘动机映射",
+                        "tags": ["MBTI", "性格暗面", "人设玄机"]
+                    }
+                },
+                {
+                    "expert_role": "🎈 纯真席·5岁小孩",
+                    "avatar_color": "text-amber-400",
+                    "dialogue": "这个叔叔藏得那么累，为什么不直接说实话呢？做错事的小朋友都知道要道歉，大人怎么比我们还害怕承认呀？",
+                    "card": {
+                        "title": "儿童纯粹直觉与皇帝新装法则",
+                        "category": "规则",
+                        "content": "当成年人都在复杂的套路和借口中打转时，直白指出最核心的物理事实往往能瞬间击穿一切谎言。",
+                        "scenario": "破除思维定势、降维幽默、直觉解谜",
+                        "source": detected,
+                        "evidence": "童真直觉击穿虚妄谎言",
+                        "tags": ["童言直觉", "反套路"]
+                    }
+                },
+                {
+                    "expert_role": "🍵 岁月席·80岁老者",
+                    "avatar_color": "text-emerald-400",
+                    "dialogue": "呵呵呵，老头子我活了八十年才懂，人这一辈子最放不下的不是金银名利，而是那口咽不下的执念啊。争到最后，不过是一抔黄土。",
+                    "card": {
+                        "title": "执念的虚妄与生命因果轮回",
+                        "category": "世界观",
+                        "content": "极致悲剧的内核不是坏人作恶，而是好人在命运洪流中拼尽全力守护执念，最终却成为悲剧的一环。",
+                        "scenario": "终极立意、悲剧内核、历史沉淀",
+                        "source": detected,
+                        "evidence": "岁月沉淀的人间悲悯",
+                        "tags": ["人生哲思", "深层立意"]
+                    }
+                }
+            ],
+            "council_summary": "五大席位达成共识：该议题融合了老辣博弈、玄学性格、童真破局与沧桑立意，具备极高沉淀价值！"
+        }
+
+    return data
 
 @app.post("/api/gacha")
 async def roll_gacha(req: GachaRequest, request: Request):

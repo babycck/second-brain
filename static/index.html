@@ -70,14 +70,14 @@
 
     <!-- 桌面端保留顶部导航 -->
     <nav class="hidden sm:flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
-      <button onclick="switchTab('home')" id="tab-home" class="tab-btn px-4 py-1.5 rounded-lg font-medium tab-active transition">
-        <i class="fa-solid fa-pen-to-square mr-1"></i> 万能捕获
+      <button onclick="switchTab('brainstorm')" id="tab-brainstorm" class="tab-btn px-4 py-1.5 rounded-lg font-medium tab-active transition">
+        <i class="fa-solid fa-comments text-amber-400 mr-1"></i> 专家圆桌复盘
       </button>
       <button onclick="switchTab('assets')" id="tab-assets" class="tab-btn px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
         <i class="fa-solid fa-layer-group mr-1"></i> 浏览积累
       </button>
-      <button onclick="switchTab('brainstorm')" id="tab-brainstorm" class="tab-btn px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
-        <i class="fa-solid fa-comments text-amber-400 mr-1"></i> 头脑风暴
+      <button onclick="switchTab('home')" id="tab-home" class="tab-btn px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
+        <i class="fa-solid fa-pen-to-square mr-1"></i> 万能捕获
       </button>
       <button onclick="switchTab('gacha')" id="tab-gacha" class="tab-btn px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
         <i class="fa-solid fa-dice mr-1"></i> 灵感炼金
@@ -99,8 +99,8 @@
 
   <main class="flex-1 max-w-5xl w-full mx-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 pb-24 sm:pb-8">
 
-    <!-- 1. 首页：三模式切换 + 锁定作品专属仪表盘 + 单项维度原子化爆破 -->
-    <section id="view-home" class="space-y-4 sm:space-y-6">
+    <!-- 3. 万能捕获：三模式切换 + 锁定作品专属仪表盘 + 单项维度原子化爆破 -->
+    <section id="view-home" class="hidden space-y-4 sm:space-y-6">
       <div class="glass-card p-4 sm:p-6 rounded-2xl space-y-4">
         
         <!-- 模式切换单选胶囊组 -->
@@ -359,54 +359,134 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4" id="asset-grid"></div>
     </section>
 
-    <!-- 3. 头脑风暴（单一输入框 + 专家席位联席交锋 + 随时提取入库） -->
-    <section id="view-brainstorm" class="hidden space-y-6">
-      <div class="glass-card p-6 rounded-2xl space-y-4">
-        <div>
-          <h2 class="text-base font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-comments text-amber-400"></i> 头脑风暴会客室
-          </h2>
-          <p class="text-xs text-slate-400 mt-1">
-            把任何奇怪的设想、卡文困扰或现实议题抛出来。创作席、决策席、成长席与哲思席将自带跨学科顶级专业知识展开激辩讨论，你可以随时把击中你的观点一键沉淀入库！
-          </p>
+    <!-- 1. AI 专家圆桌复盘 · 灵感对话流（首页核心） -->
+    <section id="view-brainstorm" class="space-y-4 sm:space-y-6">
+      <!-- 顶部圆桌席位看板 -->
+      <div class="glass-card p-4 sm:p-5 rounded-2xl border border-amber-500/30 shadow-xl space-y-3.5">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h2 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-comments text-amber-400"></i> AI 专家圆桌复盘 · 灵感对话流
+            </h2>
+            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
+              随时给智囊团倾倒你最近玩的<span class="text-amber-400 font-medium">剧本杀</span>、看的<span class="text-cyan-400 font-medium">综艺/影视</span>、听到的<span class="text-rose-400 font-medium">离奇八卦</span>或<span class="text-purple-400 font-medium">小红书脑洞</span>。五大席位专家轮流各发言一次，精准提炼法则卡片；中意即可一键存入大脑，有异议可随时反驳开喷！
+            </p>
+          </div>
+          <button onclick="clearBrainstormChat()" class="text-xs bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+            <i class="fa-solid fa-rotate-right text-slate-400"></i> 新建复盘
+          </button>
         </div>
 
-        <!-- 快捷调用我的日记/已沉淀资产栏 -->
-        <div class="space-y-1.5 pb-1">
-          <label class="block text-xs text-slate-400 flex items-center gap-1.5 font-medium">
-            <i class="fa-solid fa-book-journal-whills text-emerald-400"></i>
-            快捷调用日记 / 积累资产作为风暴议题：
-          </label>
-          <div class="relative w-full">
-            <select id="brainstorm-asset-select" onchange="insertAssetIntoBrainstorm()"
-                    class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 truncate appearance-none pr-8 shadow-sm">
-              <option value="">-- 点击选择一篇日记或资产快速注入 --</option>
-            </select>
-            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
-              <i class="fa-solid fa-chevron-down text-xs"></i>
+        <!-- 5位常驻席位专家展示条 -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
+          <div class="bg-slate-950/80 border border-rose-800/40 rounded-xl p-2.5 flex items-center gap-2 shadow-sm">
+            <div class="w-8 h-8 rounded-lg bg-rose-950/80 flex items-center justify-center text-base border border-rose-500/30 shrink-0">🎬</div>
+            <div class="overflow-hidden">
+              <div class="font-bold text-rose-400 text-xs truncate">主创·老辣编剧</div>
+              <div class="text-[10px] text-slate-400 truncate">反差钩子·叙事反转</div>
+            </div>
+          </div>
+          <div class="bg-slate-950/80 border border-cyan-800/40 rounded-xl p-2.5 flex items-center gap-2 shadow-sm">
+            <div class="w-8 h-8 rounded-lg bg-cyan-950/80 flex items-center justify-center text-base border border-cyan-500/30 shrink-0">♟️</div>
+            <div class="overflow-hidden">
+              <div class="font-bold text-cyan-400 text-xs truncate">决策·战略操盘</div>
+              <div class="text-[10px] text-slate-400 truncate">利益博弈·借力破局</div>
+            </div>
+          </div>
+          <div class="bg-slate-950/80 border border-purple-800/40 rounded-xl p-2.5 flex items-center gap-2 shadow-sm">
+            <div class="w-8 h-8 rounded-lg bg-purple-950/80 flex items-center justify-center text-base border border-purple-500/30 shrink-0">🔮</div>
+            <div class="overflow-hidden">
+              <div class="font-bold text-purple-400 text-xs truncate">玄机·星座/MBTI</div>
+              <div class="text-[10px] text-slate-400 truncate">性格暗面·宿命因果</div>
+            </div>
+          </div>
+          <div class="bg-slate-950/80 border border-amber-800/40 rounded-xl p-2.5 flex items-center gap-2 shadow-sm">
+            <div class="w-8 h-8 rounded-lg bg-amber-950/80 flex items-center justify-center text-base border border-amber-500/30 shrink-0">🎈</div>
+            <div class="overflow-hidden">
+              <div class="font-bold text-amber-400 text-xs truncate">纯真·5岁小孩</div>
+              <div class="text-[10px] text-slate-400 truncate">天真可爱·童言戳穿</div>
+            </div>
+          </div>
+          <div class="bg-slate-950/80 border border-emerald-800/40 rounded-xl p-2.5 flex items-center gap-2 shadow-sm col-span-2 sm:col-span-1">
+            <div class="w-8 h-8 rounded-lg bg-emerald-950/80 flex items-center justify-center text-base border border-emerald-500/30 shrink-0">🍵</div>
+            <div class="overflow-hidden">
+              <div class="font-bold text-emerald-400 text-xs truncate">岁月·80岁老者</div>
+              <div class="text-[10px] text-slate-400 truncate">看尽生死·人间悲悯</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 对话流互动容器 -->
+      <div class="space-y-4">
+        <!-- 历史讨论气泡与专家卡片流容器 -->
+        <div id="brainstorm-chat-feed" class="space-y-4">
+          <!-- 默认欢迎引导卡 -->
+          <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3">
+            <div class="flex items-center gap-2 text-amber-400 font-bold text-xs sm:text-sm">
+              <i class="fa-solid fa-sparkles"></i> 智囊团圆桌已就绪，欢迎开门见山发起对话：
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              随时在下方输入框倾倒你的体验与想法。系统会自动先模糊检索识别对应作品，您可以一键<b>【锁定全案深度复盘】</b>或<b>【仅作脑洞发散】</b>，5位席位专家将轮流发言并生成法则卡片！遇到有异议或漏洞，还可随时点击卡片引用反驳开喷！
+            </p>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <span class="text-[11px] text-slate-400 self-center mr-1">点选快捷灵感发起：</span>
+              <button onclick="fillBrainstormQuick('我最近玩了硬核剧本杀《年轮》，凶手时间线作案和双向伪证太绝了，帮我复盘一下核心诡计与设计精髓')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-amber-300 hover:text-white px-2.5 py-1 rounded-lg transition">
+                🎲 剧本杀《年轮》复盘
+              </button>
+              <button onclick="fillBrainstormQuick('我看了《极限挑战》第一季金条争夺战，帮我复盘里面有哪些经典的人性背叛与利益博弈机制')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-cyan-300 hover:text-white px-2.5 py-1 rounded-lg transition">
+                📺 《极限挑战》金条博弈
+              </button>
+              <button onclick="fillBrainstormQuick('在《明星大侦探》的密室连环杀人案里，搜证视角盲区是如何欺骗侦探的？')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-rose-300 hover:text-white px-2.5 py-1 rounded-lg transition">
+                🕵️ 《明侦》视角盲区
+              </button>
+              <button onclick="fillBrainstormQuick('从小红书看到一个反常识热点：越是老实人设在利益反转时越容易引发群体同理心，怎么提炼成故事法则？')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-purple-300 hover:text-white px-2.5 py-1 rounded-lg transition">
+                📕 小红书反常识奇思
+              </button>
             </div>
           </div>
         </div>
 
-        <textarea id="brainstorm-input" rows="4" placeholder="输入任何奇怪的想法或议题：&#10;• “我想写一个主角靠给富豪装穷骗取信任的故事，如何设计开局黄金反差与借力打力机制？”&#10;• “如果把微短剧的连环打脸心理学机制，套用到现实团队激励里，怎么做？”"
-                  class="w-full bg-slate-900 border border-slate-700 rounded-xl p-4 text-xs text-white focus:outline-none focus:border-amber-500 leading-relaxed"></textarea>
+        <!-- 悬浮/固定底部对话输入栏 -->
+        <div class="glass-card p-3 sm:p-4 rounded-2xl border border-amber-500/40 shadow-2xl space-y-2.5 sticky bottom-16 sm:bottom-4 z-20 backdrop-blur-xl bg-slate-950/90">
+          <!-- 引用反驳指示条 -->
+          <div id="bs-quote-badge" class="hidden flex items-center justify-between bg-amber-950/60 border border-amber-600/50 rounded-xl px-3 py-1.5 text-xs text-amber-300">
+            <div class="flex items-center gap-2 truncate">
+              <i class="fa-solid fa-quote-left text-amber-400"></i>
+              <span>正在针对 <b id="bs-quote-target" class="text-white">【席位】</b> 的观点进行反驳/追问</span>
+            </div>
+            <button onclick="cancelBrainstormQuote()" type="button" class="text-slate-400 hover:text-rose-400 text-sm ml-2" title="取消引用">&times;</button>
+          </div>
 
-        <div class="flex justify-between items-center">
-          <span class="text-xs text-slate-500">席位专家：<span class="text-amber-400">编剧 · 战略家 · 心理学者 · 哲人</span></span>
-          <button onclick="startBrainstorm()" id="btn-brainstorm" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20">
-            <i class="fa-solid fa-users"></i> 召集专家头脑风暴
-          </button>
-        </div>
-      </div>
+          <!-- 文档附件指示器（如果有上传） -->
+          <div id="bs-file-badge" class="hidden flex items-center justify-between bg-slate-900/90 border border-cyan-800/60 rounded-xl px-3 py-1.5 text-xs text-cyan-300">
+            <div class="flex items-center gap-2 truncate">
+              <i class="fa-solid fa-file-circle-check text-cyan-400"></i>
+              <span id="bs-file-name" class="font-medium truncate">剧本复盘材料</span>
+              <span id="bs-file-stat" class="text-[10px] text-slate-400"></span>
+            </div>
+            <button onclick="removeBrainstormFile()" type="button" class="text-slate-400 hover:text-rose-400 text-sm ml-2" title="移除此附件">&times;</button>
+          </div>
 
-      <!-- 风暴讨论气泡流 -->
-      <div id="brainstorm-chat-wrapper" class="hidden space-y-3">
-        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-          <h3 class="text-xs font-bold text-slate-300 flex items-center gap-2">
-            <i class="fa-solid fa-bolt text-amber-400"></i> 专家激辩交锋记录（点击右侧按钮，随时将精彩观点存入你的资产库）
-          </h3>
+          <div class="relative">
+            <textarea id="brainstorm-chat-input" rows="3"
+                      placeholder="畅所欲言：“我最近玩了xx剧本杀...”、“我最近看了xx综艺...”、“从小红书看到一个事情...”，或者直接反驳上面专家的观点...（Ctrl+Enter 或点击发送）"
+                      class="w-full bg-slate-900/90 border border-slate-700/90 rounded-xl p-3 sm:p-3.5 text-xs text-white focus:outline-none focus:border-amber-500 leading-relaxed shadow-inner"></textarea>
+          </div>
+
+          <div class="flex items-center justify-between flex-wrap gap-2 pt-0.5">
+            <div class="flex items-center gap-2">
+              <input type="file" id="bs-file-input" accept=".txt,.md,.text,.json,.doc,.docx" class="hidden" onchange="handleBrainstormFile(event)">
+              <button onclick="document.getElementById('bs-file-input').click()" type="button" class="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-400 border border-slate-700/80 px-2.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm" title="上传剧本杀复盘文档、TXT或笔记材料">
+                <i class="fa-solid fa-paperclip text-cyan-400"></i> 上传复盘剧本/文档
+              </button>
+            </div>
+
+            <button onclick="sendBrainstormChat()" id="btn-bs-send" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20">
+              <i class="fa-solid fa-paper-plane"></i> 发送研讨
+            </button>
+          </div>
         </div>
-        <div id="brainstorm-chat" class="space-y-3"></div>
       </div>
     </section>
 
@@ -1544,80 +1624,343 @@
       }
     }
 
-    // 头脑风暴逻辑
-    async function startBrainstorm() {
-      const idea = document.getElementById('brainstorm-input').value.trim();
-      if (!idea) return alert('请输入想头脑风暴的想法或议题');
-      const btn = document.getElementById('btn-brainstorm');
-      const originalText = btn.innerHTML;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> 专家正在激烈交锋...';
+    // 5大席位专家圆桌会客室对话流逻辑
+    let brainstormChatHistory = [];
+    let brainstormAttachedDoc = { name: '', text: '' };
+    let currentQuotedSeat = null;
+    let councilTurnsData = [];
 
-      const wrapper = document.getElementById('brainstorm-chat-wrapper');
-      const chat = document.getElementById('brainstorm-chat');
-      wrapper.classList.remove('hidden');
-      chat.innerHTML = '<div class="text-xs text-slate-400 py-4 text-center"><i class="fa-solid fa-circle-notch fa-spin mr-1 text-amber-400"></i> 各席位专家正在就议题推演碰撞中...</div>';
-
-      try {
-        const res = await fetch('/api/brainstorm', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            idea: idea,
-            model: localStorage.getItem('model') || 'deepseek-chat',
-            api_key: localStorage.getItem('api_key') || '',
-            base_url: localStorage.getItem('base_url') || ''
-          })
-        });
-        const data = await res.json();
-        chat.innerHTML = '';
-        (data.rounds || []).forEach((r, idx) => {
-          const div = document.createElement('div');
-          div.className = 'glass-card p-4 rounded-xl border border-slate-800 space-y-2';
-          div.innerHTML = `
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold ${r.avatar_color}"><i class="fa-solid fa-user-tie mr-1.5"></i>${r.role}</span>
-              <button onclick="saveBrainstormSingle(${idx})" id="bs-btn-${idx}" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg transition flex items-center gap-1 font-medium">
-                <i class="fa-solid fa-plus text-amber-400"></i> 沉淀此观点入库
-              </button>
-            </div>
-            <p class="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">${r.content}</p>
-          `;
-          chat.appendChild(div);
-        });
-        window.currentBrainstormRounds = data.rounds;
-      } catch (e) {
-        chat.innerHTML = '<div class="text-xs text-rose-400 py-2">研讨失败: ' + e + '</div>';
-      } finally {
-        btn.innerHTML = originalText;
+    function fillBrainstormQuick(text) {
+      const input = document.getElementById('brainstorm-chat-input');
+      if (input) {
+        input.value = text;
+        input.focus();
       }
     }
 
-    async function saveBrainstormSingle(idx) {
-      const item = window.currentBrainstormRounds[idx];
-      const idea = document.getElementById('brainstorm-input').value.trim();
+    function handleBrainstormFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        brainstormAttachedDoc = {
+          name: file.name,
+          text: e.target.result || ''
+        };
+        const badge = document.getElementById('bs-file-badge');
+        const nameSpan = document.getElementById('bs-file-name');
+        const statSpan = document.getElementById('bs-file-stat');
+        if (badge) badge.classList.remove('hidden');
+        if (nameSpan) nameSpan.innerText = file.name;
+        if (statSpan) statSpan.innerText = `(${(brainstormAttachedDoc.text.length / 1000).toFixed(1)}k字)`;
+      };
+      reader.readAsText(file);
+    }
+
+    function removeBrainstormFile() {
+      brainstormAttachedDoc = { name: '', text: '' };
+      const badge = document.getElementById('bs-file-badge');
+      if (badge) badge.classList.add('hidden');
+      const input = document.getElementById('bs-file-input');
+      if (input) input.value = '';
+    }
+
+    function quoteExpertRebuttal(expertRole, cardTitle) {
+      currentQuotedSeat = expertRole;
+      const badge = document.getElementById('bs-quote-badge');
+      const targetSpan = document.getElementById('bs-quote-target');
+      if (badge) badge.classList.remove('hidden');
+      if (targetSpan) targetSpan.innerText = expertRole;
+
+      const input = document.getElementById('brainstorm-chat-input');
+      if (input) {
+        const cleanTitle = (cardTitle || '这个观点').slice(0, 20);
+        input.value = `@${expertRole}：针对【${cleanTitle}】，我认为这里有逻辑漏洞：`;
+        input.focus();
+        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+
+    function cancelBrainstormQuote() {
+      currentQuotedSeat = null;
+      const badge = document.getElementById('bs-quote-badge');
+      if (badge) badge.classList.add('hidden');
+    }
+
+    function clearBrainstormChat() {
+      if (!confirm('确定要清空当前的复盘交锋记录，开启全新复盘吗？')) return;
+      brainstormChatHistory = [];
+      councilTurnsData = [];
+      cancelBrainstormQuote();
+      removeBrainstormFile();
+      const feed = document.getElementById('brainstorm-chat-feed');
+      if (feed) {
+        feed.innerHTML = `
+          <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3">
+            <div class="flex items-center gap-2 text-amber-400 font-bold text-xs sm:text-sm">
+              <i class="fa-solid fa-sparkles"></i> 智囊团圆桌已就绪，欢迎开门见山发起对话：
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              随时在下方输入框倾倒你的体验与想法。系统会自动先模糊检索识别对应作品，您可以一键<b>【锁定全案深度复盘】</b>或<b>【仅作脑洞发散】</b>，5位席位专家将轮流发言并生成法则卡片！遇到有异议或漏洞，还可随时点击卡片引用反驳开喷！
+            </p>
+            <div class="flex flex-wrap gap-1.5 pt-1">
+              <span class="text-[11px] text-slate-400 self-center mr-1">点选快捷灵感发起：</span>
+              <button onclick="fillBrainstormQuick('我最近玩了硬核剧本杀《年轮》，凶手时间线作案和双向伪证太绝了，帮我复盘一下核心诡计与设计精髓')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-amber-300 hover:text-white px-2.5 py-1 rounded-lg transition">
+                🎲 剧本杀《年轮》复盘
+              </button>
+              <button onclick="fillBrainstormQuick('我看了《极限挑战》第一季金条争夺战，帮我复盘里面有哪些经典的人性背叛与利益博弈机制')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-cyan-300 hover:text-white px-2.5 py-1 rounded-lg transition">
+                📺 《极限挑战》金条博弈
+              </button>
+              <button onclick="fillBrainstormQuick('在《明星大侦探》的密室连环杀人案里，搜证视角盲区是如何欺骗侦探的？')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-rose-300 hover:text-white px-2.5 py-1 rounded-lg transition">
+                🕵️ 《明侦》视角盲区
+              </button>
+              <button onclick="fillBrainstormQuick('从小红书看到一个反常识热点：越是老实人设在利益反转时越容易引发群体同理心，怎么提炼成故事法则？')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-purple-300 hover:text-white px-2.5 py-1 rounded-lg transition">
+                📕 小红书反常识奇思
+              </button>
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    async function sendBrainstormChat(overrideMessage = null) {
+      const inputEl = document.getElementById('brainstorm-chat-input');
+      const msg = (overrideMessage || (inputEl ? inputEl.value : '')).trim();
+      if (!msg && !brainstormAttachedDoc.text) {
+        alert('请输入你想讨论的话题、剧本杀/作品体验或反驳观点！');
+        return;
+      }
+
+      const btn = document.getElementById('btn-bs-send');
+      const originalText = btn ? btn.innerHTML : '发送研讨';
+      if (btn) {
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> 五大席位交锋中...';
+        btn.disabled = true;
+      }
+
+      const feed = document.getElementById('brainstorm-chat-feed');
+
+      // 1. 渲染用户发言气泡
+      const userBubble = document.createElement('div');
+      userBubble.className = 'flex justify-end';
+      userBubble.innerHTML = `
+        <div class="max-w-[85%] bg-gradient-to-r from-amber-600/90 to-orange-700/90 text-white p-3.5 rounded-2xl rounded-tr-none text-xs leading-relaxed shadow-lg">
+          <div class="flex items-center gap-1.5 font-bold mb-1 opacity-90 text-[10px]">
+            <i class="fa-solid fa-circle-user"></i> 我提问 / 探讨
+          </div>
+          <div class="whitespace-pre-wrap">${escapeHtml(msg)}</div>
+          ${brainstormAttachedDoc.name ? `<div class="mt-2 pt-1 border-t border-white/20 text-[10px] opacity-80"><i class="fa-solid fa-paperclip mr-1"></i>已附带文档：${escapeHtml(brainstormAttachedDoc.name)}</div>` : ''}
+        </div>
+      `;
+      feed.appendChild(userBubble);
+
+      if (!overrideMessage && inputEl) {
+        inputEl.value = '';
+      }
+      cancelBrainstormQuote();
+
+      // 2. 占位 Loading 气泡
+      const loadingBubble = document.createElement('div');
+      loadingBubble.id = 'bs-loading-bubble';
+      loadingBubble.className = 'glass-card p-4 rounded-2xl border border-amber-500/30 text-xs text-slate-300 flex items-center gap-3 animate-pulse';
+      loadingBubble.innerHTML = `
+        <i class="fa-solid fa-circle-notch fa-spin text-amber-400 text-lg"></i>
+        <div>
+          <div class="font-bold text-white text-xs">智囊团圆桌正在闭门研讨...</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">编剧、操盘手、玄学大师、5岁小孩与80岁老者正在激烈碰撞交锋！</div>
+        </div>
+      `;
+      feed.appendChild(loadingBubble);
+      loadingBubble.scrollIntoView({ behavior: 'smooth', block: 'end' });
+
+      // 3. 构建发送请求
       try {
-        await fetch('/api/asset/save', {
+        const payload = {
+          message: msg,
+          context_doc: brainstormAttachedDoc.text || '',
+          history: brainstormChatHistory,
+          model: localStorage.getItem('model') || 'deepseek-chat',
+          api_key: localStorage.getItem('api_key') || '',
+          base_url: localStorage.getItem('base_url') || ''
+        };
+
+        const res = await fetch('/api/brainstorm/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        const loadEl = document.getElementById('bs-loading-bubble');
+        if (loadEl) loadEl.remove();
+
+        const turnIndex = councilTurnsData.length;
+        councilTurnsData.push(data);
+
+        // 记录历史上下文
+        brainstormChatHistory.push({ role: 'user', content: msg });
+        const summaryText = data.speeches ? data.speeches.map(s => `${s.expert_role}: ${s.dialogue}`).join('\n') : '';
+        brainstormChatHistory.push({ role: 'council', content: summaryText });
+
+        // 4. 渲染本轮圆桌研讨卡片
+        const turnBox = document.createElement('div');
+        turnBox.className = 'space-y-3.5';
+
+        // 模糊识别提示门禁条（如果识别出了作品）
+        let fuzzyGateHtml = '';
+        if (data.detected_work && data.detected_work !== '原创灵感脑洞' && data.detected_work !== '原创脑洞探讨') {
+          fuzzyGateHtml = `
+            <div class="p-3 bg-gradient-to-r from-amber-950/80 via-slate-900 to-indigo-950/80 border border-amber-500/40 rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="text-base">🎯</span>
+                <div>
+                  <div class="text-white font-bold flex items-center gap-1.5">
+                    <span>智能定位作品：</span>
+                    <span class="text-amber-400 font-extrabold underline">${escapeHtml(data.detected_work)}</span>
+                  </div>
+                  <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(data.detected_hint || '已自动定位全案核心诡计与名场面')}</div>
+                </div>
+              </div>
+              <div class="flex items-center gap-2">
+                <button onclick="lockConfirmWork('${escapeHtml(data.detected_work)}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1 shadow-sm">
+                  <i class="fa-solid fa-check"></i> 锁定全案深挖
+                </button>
+              </div>
+            </div>
+          `;
+        }
+
+        // 5席位专家发言卡片 HTML
+        let speechesHtml = '';
+        (data.speeches || []).forEach((s, sIdx) => {
+          const card = s.card || {};
+          speechesHtml += `
+            <div class="glass-card p-4 rounded-2xl border border-slate-800 space-y-2.5 hover:border-slate-700 transition">
+              <!-- 专家头衔与身份 -->
+              <div class="flex items-center justify-between border-b border-slate-800/80 pb-2">
+                <div class="flex items-center gap-2 font-bold text-xs ${s.avatar_color}">
+                  <span>${escapeHtml(s.expert_role)}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="quoteExpertRebuttal('${escapeHtml(s.expert_role)}', '${escapeHtml(card.title || '')}')"
+                          class="text-[11px] text-slate-400 hover:text-amber-400 bg-slate-900 border border-slate-800 hover:border-amber-700/60 px-2.5 py-0.5 rounded-lg transition flex items-center gap-1 font-medium">
+                    <i class="fa-solid fa-quote-left text-[10px]"></i> 引用反驳
+                  </button>
+                </div>
+              </div>
+
+              <!-- 专家对话发言 -->
+              <p class="text-xs text-slate-200 leading-relaxed whitespace-pre-wrap">${escapeHtml(s.dialogue)}</p>
+
+              <!-- 专家内置提炼资产卡片 -->
+              <div class="mt-2.5 p-3 rounded-xl bg-slate-950/90 border border-slate-800/90 space-y-2">
+                <div class="flex items-center justify-between flex-wrap gap-1.5">
+                  <div class="flex items-center gap-1.5">
+                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800/60 font-bold">${escapeHtml(card.category || '规则')}</span>
+                    <span class="text-xs font-bold text-white">${escapeHtml(card.title || '核心提炼')}</span>
+                  </div>
+                  <button id="card-save-btn-${turnIndex}-${sIdx}" onclick="saveCardFromCouncil(${turnIndex}, ${sIdx})"
+                          class="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white text-[10px] font-bold px-3 py-1 rounded-lg transition flex items-center gap-1 shadow-sm">
+                    <i class="fa-solid fa-sparkles"></i> ✨ 加入我的积累
+                  </button>
+                </div>
+
+                <div class="text-[11px] text-slate-300 leading-relaxed">${escapeHtml(card.content || '')}</div>
+
+                <div class="flex items-center justify-between text-[10px] text-slate-500 pt-1 border-t border-slate-900 flex-wrap gap-1">
+                  <span>出处：<span class="text-slate-400">${escapeHtml(card.source || '智囊团会客室')}</span></span>
+                  ${card.scenario ? `<span>场景：<span class="text-slate-400">${escapeHtml(card.scenario)}</span></span>` : ''}
+                </div>
+              </div>
+            </div>
+          `;
+        });
+
+        // 终极合议总结
+        const summaryHtml = `
+          <div class="p-3.5 bg-gradient-to-r from-indigo-950/70 to-slate-950 border border-indigo-500/30 rounded-2xl text-xs space-y-1 shadow-md">
+            <div class="text-indigo-400 font-bold flex items-center gap-1.5">
+              <i class="fa-solid fa-lightbulb"></i> 💡 圆桌终极共识与落地方案
+            </div>
+            <p class="text-slate-300 leading-relaxed text-[11px]">${escapeHtml(data.council_summary || '各席位已完成首轮深度推演，您可以选择中意卡片加入积累，或直接在下方反驳追问！')}</p>
+          </div>
+        `;
+
+        turnBox.innerHTML = fuzzyGateHtml + speechesHtml + summaryHtml;
+        feed.appendChild(turnBox);
+        turnBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+      } catch (e) {
+        const loadEl = document.getElementById('bs-loading-bubble');
+        if (loadEl) loadEl.remove();
+        const errDiv = document.createElement('div');
+        errDiv.className = 'p-3 bg-rose-950/60 border border-rose-800 text-rose-300 text-xs rounded-xl';
+        errDiv.innerText = '研讨请求发生异常：' + e;
+        feed.appendChild(errDiv);
+      } finally {
+        if (btn) {
+          btn.innerHTML = originalText;
+          btn.disabled = false;
+        }
+      }
+    }
+
+    function lockConfirmWork(workName) {
+      sendBrainstormChat(`请智囊团全员精准锁定并深度复盘【${workName}】全案：请详细拆解其核心诡计、时间差伪证手法、博弈机制与名场面高光！`);
+    }
+
+    async function saveCardFromCouncil(turnIdx, sIdx) {
+      const turn = councilTurnsData[turnIdx];
+      if (!turn || !turn.speeches || !turn.speeches[sIdx]) return;
+      const s = turn.speeches[sIdx];
+      const card = s.card || {};
+      const btn = document.getElementById(`card-save-btn-${turnIdx}-${sIdx}`);
+
+      try {
+        const res = await fetch('/api/asset/save', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            category: 'notes',
-            sub_type: 'dialogue',
-            title: '风暴灵感：' + item.role,
-            source: '头脑风暴会客室',
-            scenario: '探讨议题：' + idea.slice(0, 25),
-            content: item.content,
-            evidence: '席位发言：' + item.role,
-            tags: ['头脑风暴', '灵感火花']
+            category: card.category || '规则',
+            sub_type: 'council_dialogue',
+            title: card.title || ('智囊观点：' + s.expert_role),
+            source: card.source || (turn.detected_work || '专家圆桌复盘'),
+            scenario: card.scenario || '通用创作与博弈场景',
+            content: card.content || s.dialogue,
+            evidence: card.evidence || ('席位发言：' + s.expert_role),
+            tags: card.tags || ['专家复盘', card.category || '规则']
           })
         });
-        const btn = document.getElementById('bs-btn-' + idx);
-        btn.innerText = '已入库 ✓';
-        btn.className = 'text-[11px] bg-slate-950 text-slate-500 border border-slate-900 px-2.5 py-1 rounded-lg cursor-default';
-        btn.onclick = null;
-        await loadData();
+
+        if (res.ok) {
+          if (btn) {
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> ✅ 已存入积累库';
+            btn.className = 'bg-slate-900 border border-slate-800 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-lg cursor-default';
+            btn.disabled = true;
+          }
+          await loadData();
+        } else {
+          alert('保存失败，请检查网络或权限');
+        }
       } catch (e) {
-        alert('入库失败: ' + e);
+        alert('保存异常：' + e);
       }
+    }
+
+    // 简单 html 转义辅助
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    // 兼容老调用
+    function startBrainstorm() {
+      sendBrainstormChat();
     }
 
     // 免分析直接保存随笔日记
@@ -1708,15 +2051,15 @@
     // 快捷调用资产/日记至头脑风暴
     function sendAssetToBrainstorm(id) {
       switchTab('brainstorm');
-      const select = document.getElementById('brainstorm-asset-select');
-      if (select) select.value = id;
       const asset = (dbData.assets || []).find(a => a.id === id);
       if (!asset) return;
-      const textarea = document.getElementById('brainstorm-input');
+      const textarea = document.getElementById('brainstorm-chat-input');
       const isDiary = asset.sub_type === 'diary' || asset.category === 'notes';
-      textarea.value = `【调用${isDiary ? '随笔日记' : '资产模型'} · 《${asset.title}》】\n出处/记录：${asset.source}\n原文核心内容：\n${formatContent(asset.content)}\n\n请四位专家就此${isDiary ? '日记中的心理诉求、生活观察或灵感火花' : '资产模型内在逻辑'}展开碰撞：\n1. 商业编剧：如何将其提炼为具有戏剧张力与反转的情节钩子？\n2. 战略操盘手：如何提取背后的博弈杠杆与破局闭环？\n3. 心理学者：背后反映了怎样的深层情绪机制与痛点？\n4. 哲人：如何跳出日常表象洞悉荒诞或反直觉本质？`;
-      textarea.scrollIntoView({ behavior: 'smooth' });
-      textarea.focus();
+      if (textarea) {
+        textarea.value = `我想深度复盘探讨我的【${isDiary ? '随笔日记' : '资产模型'} · 《${asset.title}》】\n出处/记录：${asset.source}\n核心内容：${formatContent(asset.content)}\n\n请五位专家针对此内容，分别从编剧反差、商业博弈、玄学MBTI、5岁小孩直觉和80岁老者阅历展开多维复盘！`;
+        textarea.scrollIntoView({ behavior: 'smooth' });
+        textarea.focus();
+      }
     }
 
     // 快捷调用资产/日记至灵感炼金机
@@ -2141,27 +2484,39 @@
       localStorage.setItem('model', m);
       document.getElementById('api-model').value = m;
       document.getElementById('current-model-label').innerText = m;
-      loadData();
+      await loadData();
+      switchTab('brainstorm');
+
+      // 绑定对话框回车快捷发送
+      const bsInput = document.getElementById('brainstorm-chat-input');
+      if (bsInput) {
+        bsInput.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendBrainstormChat();
+          }
+        });
+      }
     };
   </script>
 
   <!-- 移动端专属 iOS 底部沉浸导航栏 -->
   <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/80 px-2 py-1 flex items-center justify-around text-[10px]" style="padding-bottom: max(env(safe-area-inset-bottom), 8px);">
-    <button onclick="switchTab('home')" id="bnav-home" class="bnav-btn flex flex-col items-center justify-center py-1 px-3 text-cyan-400 font-bold transition">
-      <i class="fa-solid fa-pen-to-square text-base mb-0.5"></i>
-      <span>捕获</span>
+    <button onclick="switchTab('brainstorm')" id="bnav-brainstorm" class="bnav-btn flex flex-col items-center justify-center py-1 px-3 text-cyan-400 font-bold transition">
+      <i class="fa-solid fa-comments text-base mb-0.5 text-amber-400"></i>
+      <span>专家复盘</span>
     </button>
     <button onclick="switchTab('assets')" id="bnav-assets" class="bnav-btn flex flex-col items-center justify-center py-1 px-3 text-slate-400 font-medium transition">
       <i class="fa-solid fa-layer-group text-base mb-0.5"></i>
-      <span>积累</span>
+      <span>浏览积累</span>
     </button>
-    <button onclick="switchTab('brainstorm')" id="bnav-brainstorm" class="bnav-btn flex flex-col items-center justify-center py-1 px-3 text-slate-400 font-medium transition">
-      <i class="fa-solid fa-comments text-base mb-0.5"></i>
-      <span>风暴</span>
+    <button onclick="switchTab('home')" id="bnav-home" class="bnav-btn flex flex-col items-center justify-center py-1 px-3 text-slate-400 font-medium transition">
+      <i class="fa-solid fa-pen-to-square text-base mb-0.5"></i>
+      <span>万能捕获</span>
     </button>
     <button onclick="switchTab('gacha')" id="bnav-gacha" class="bnav-btn flex flex-col items-center justify-center py-1 px-3 text-slate-400 font-medium transition">
       <i class="fa-solid fa-dice text-base mb-0.5"></i>
-      <span>炼金</span>
+      <span>灵感炼金</span>
     </button>
     <button onclick="switchTab('settings')" id="bnav-settings" class="bnav-btn flex flex-col items-center justify-center py-1 px-3 text-slate-400 font-medium transition">
       <i class="fa-solid fa-gear text-base mb-0.5"></i>
