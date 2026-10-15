@@ -28,23 +28,99 @@ STATIC_DIR = os.path.join(BUNDLE_DIR, "static")
 if not os.path.exists(STATIC_DIR):
     STATIC_DIR = os.path.join(BASE_DIR, "static")
 
-def load_db() -> Dict[str, Any]:
+def sanitize_user_id(user_id: Optional[str]) -> str:
+    if not user_id:
+        return "admin"
+    clean = re.sub(r'[^\w\u4e00-\u9fa5_-]', '', str(user_id)).strip()
+    return clean if clean else "admin"
+
+def get_initial_template_for_new_user() -> Dict[str, Any]:
+    return {
+        "assets": [
+            {
+                "id": "asset-init-1",
+                "category": "creation",
+                "sub_type": "technique",
+                "title": "三幕式叙事结构与转折点设计",
+                "source": "编剧工业经典模型",
+                "scenario": "长篇小说、剧本、故事推演等创意构思阶段调用",
+                "content": "核心拆解：\n\n【第一幕·建置】：交代人物目标与现状，在10%-15%处制造激励事件，彻底打破人物平静生活。\n\n【第二幕·对抗】：人物进入陌生环境，遭遇层层升级的阻碍。中间点（50%）发生虚假胜利或虚假失败，随后在75%处迎来灵魂黑夜（全盘皆输）。\n\n【第三幕·高潮与结局】：绝地反击，核心矛盾正面对决，展现人物弧线升华。",
+                "evidence": "出处：经典编剧理论与视听工业范式",
+                "tags": ["创作资料", "三幕式", "转折点", "新手示例"],
+                "relations": [],
+                "created_at": time.strftime("%Y-%m-%d %H:%M")
+            },
+            {
+                "id": "asset-init-2",
+                "category": "skill",
+                "sub_type": "method",
+                "title": "费曼学习法与知识工业化萃取",
+                "source": "现代认知科学",
+                "scenario": "接触复杂新概念、行业黑话或需要向他人交付方案时调用",
+                "content": "核心拆解：\n\n1. 明确目标：选定一个具体概念或技能。\n2. 讲给外行听：尝试用8岁小孩能听懂的极简白话解释它，杜绝一切行话黑话。\n3. 卡壳回溯：遇到解释不通或生涩的地方，重新查阅原始资料直到彻底打通。\n4. 精炼与类比：使用生活中的具象隐喻进行包装与交付。",
+                "evidence": "出处：理查德·费曼物理学讲义认知心法",
+                "tags": ["我的技能", "费曼学习法", "知识工程", "新手示例"],
+                "relations": [],
+                "created_at": time.strftime("%Y-%m-%d %H:%M")
+            }
+        ]
+    }
+
+def get_user_db_path(user_id: str) -> str:
     os.makedirs(DATA_DIR, exist_ok=True)
-    if not os.path.exists(DATA_FILE):
-        default_data = {"assets": []}
-        with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(default_data, f, ensure_ascii=False, indent=2)
-        return default_data
+    clean_user = sanitize_user_id(user_id)
+    return os.path.join(DATA_DIR, f"database_{clean_user}.json")
+
+def load_db(user_id: str = "admin") -> Dict[str, Any]:
+    os.makedirs(DATA_DIR, exist_ok=True)
+    clean_user = sanitize_user_id(user_id)
+    target_file = get_user_db_path(clean_user)
+
+    # 兼容历史数据：若访问 admin 或 default，且专属库尚不存在，而旧 database.json 存在，则自动继承原有全部 78 条资产与日记
+    if clean_user in ["admin", "default"] and not os.path.exists(target_file):
+        old_file = os.path.join(DATA_DIR, "database.json")
+        if os.path.exists(old_file):
+            try:
+                with open(old_file, "r", encoding="utf-8") as f:
+                    old_data = json.load(f)
+                with open(target_file, "w", encoding="utf-8") as f:
+                    json.dump(old_data, f, ensure_ascii=False, indent=2)
+                return old_data
+            except Exception as e:
+                print(f"[Migration Error] {e}")
+
+    # 若该用户库不存在，创建新库
+    if not os.path.exists(target_file):
+        if clean_user in ["admin", "default"]:
+            initial_data = {"assets": []}
+        else:
+            initial_data = get_initial_template_for_new_user()
+        with open(target_file, "w", encoding="utf-8") as f:
+            json.dump(initial_data, f, ensure_ascii=False, indent=2)
+        return initial_data
+
     try:
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
+        with open(target_file, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return {"assets": []}
 
-def save_db(data: Dict[str, Any]):
+def save_db(data: Dict[str, Any], user_id: str = "admin"):
     os.makedirs(DATA_DIR, exist_ok=True)
-    with open(DATA_FILE, "w", encoding="utf-8") as f:
+    clean_user = sanitize_user_id(user_id)
+    target_file = get_user_db_path(clean_user)
+    with open(target_file, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+def extract_user_id(request: Request) -> str:
+    user = (
+        request.headers.get("X-User-Space")
+        or request.headers.get("X-Space-Id")
+        or request.query_params.get("user")
+        or request.query_params.get("space")
+        or "admin"
+    )
+    return sanitize_user_id(user)
 
 class MatchQueryRequest(BaseModel):
     query: str
@@ -100,8 +176,8 @@ class GachaRequest(BaseModel):
 
 # 智能 LLM 请求：内置国内直连防代理卡死、模型自动纠正与细粒度超时保护
 async def call_llm(prompt: str, api_key: Optional[str] = None, base_url: Optional[str] = None, model: Optional[str] = None, timeout_sec: float = 120.0) -> str:
-    key = (api_key or "").strip()
-    url = (base_url or "").strip().rstrip("/")
+    key = (api_key or "").strip() or os.environ.get("DEEPSEEK_API_KEY", "").strip() or os.environ.get("API_KEY", "").strip()
+    url = (base_url or "").strip().rstrip("/") or os.environ.get("BASE_URL", "").strip().rstrip("/")
     if not key:
         print("[LLM Error] API Key 未填写，请在设置中配置！")
         return ""
@@ -302,8 +378,9 @@ async def chrome_devtools():
     return Response(content="{}", media_type="application/json")
 
 @app.get("/api/db")
-def get_database():
-    return load_db()
+def get_database(request: Request):
+    user_id = extract_user_id(request)
+    return load_db(user_id)
 
 @app.post("/api/test_connection")
 async def test_connection(req: MatchQueryRequest):
@@ -552,8 +629,9 @@ async def analyze_core(req: UniversalAnalyzeRequest):
     return {"cards": cards}
 
 @app.post("/api/asset/save")
-def save_asset(req: SaveAssetRequest):
-    db = load_db()
+def save_asset(req: SaveAssetRequest, request: Request):
+    user_id = extract_user_id(request)
+    db = load_db(user_id)
     new_asset = {
         "id": f"asset-{int(time.time()*1000)}",
         "category": req.category,
@@ -568,16 +646,17 @@ def save_asset(req: SaveAssetRequest):
         "created_at": time.strftime("%Y-%m-%d %H:%M")
     }
     db["assets"].insert(0, new_asset)
-    save_db(db)
+    save_db(db, user_id)
     return new_asset
 
 @app.post("/api/asset/delete")
-def delete_asset(req: DeleteAssetRequest):
-    db = load_db()
+def delete_asset(req: DeleteAssetRequest, request: Request):
+    user_id = extract_user_id(request)
+    db = load_db(user_id)
     original_len = len(db.get("assets", []))
     db["assets"] = [a for a in db.get("assets", []) if a.get("id") != req.id]
     if len(db["assets"]) < original_len:
-        save_db(db)
+        save_db(db, user_id)
         return {"status": "success", "deleted_id": req.id}
     else:
         raise HTTPException(status_code=404, detail="未找到该卡片")
@@ -644,8 +723,9 @@ async def run_brainstorm(req: BrainstormRequest):
     return {"rounds": rounds}
 
 @app.post("/api/gacha")
-async def roll_gacha(req: GachaRequest):
-    db = load_db()
+async def roll_gacha(req: GachaRequest, request: Request):
+    user_id = extract_user_id(request)
+    db = load_db(user_id)
     assets = db.get("assets", [])
     
     if req.anchor_asset_id:

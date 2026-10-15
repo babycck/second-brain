@@ -87,10 +87,14 @@
       </button>
     </nav>
 
-    <!-- 移动端顶部状态指示小胶囊 -->
-    <div class="sm:hidden flex items-center gap-1.5 text-[11px] bg-slate-900/90 border border-slate-800 px-2.5 py-1 rounded-full text-slate-400">
-      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-      <span id="mobile-top-status">云端就绪</span>
+    <!-- 用户专属空间指示器与快捷切换（手机与电脑全端适配） -->
+    <div class="flex items-center gap-2">
+      <button onclick="promptSwitchUser()" type="button" class="flex items-center gap-1.5 bg-slate-900/90 hover:bg-slate-800 border border-slate-750 px-2.5 py-1 rounded-full text-xs text-slate-300 transition shadow-sm" title="点击切换用户名或载入专属空间">
+        <i class="fa-solid fa-circle-user text-cyan-400 text-xs"></i>
+        <span class="text-slate-400 text-[10px] hidden sm:inline">空间:</span>
+        <span id="current-user-badge" class="font-bold text-white text-[11px] sm:text-xs">admin</span>
+        <i class="fa-solid fa-right-left text-[9px] text-slate-400 ml-0.5"></i>
+      </button>
     </div>
   </header>
 
@@ -465,6 +469,41 @@
 
     <!-- 5. 设置 -->
     <section id="view-settings" class="hidden space-y-4">
+      <!-- 专属用户空间与数据隔离 -->
+      <div class="glass-card p-5 rounded-2xl max-w-lg mx-auto space-y-4">
+        <div>
+          <h2 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-users-viewfinder text-indigo-400"></i> 用户空间与数据隔离
+          </h2>
+          <p class="text-[11px] text-slate-400 mt-1">每个用户名独享独立数据库，日记与资产互不干扰、绝对保密。</p>
+        </div>
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">当前登录用户名 / 空间码</label>
+            <div class="flex gap-2">
+              <input id="setting-user-input" type="text" placeholder="如: admin, tom, guest" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-cyan-500 font-mono">
+              <button onclick="switchUserByInput()" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-bold transition flex items-center gap-1.5 whitespace-nowrap shadow-md shadow-indigo-600/20">
+                <i class="fa-solid fa-arrow-right-to-bracket"></i> 切换载入
+              </button>
+            </div>
+            <span class="text-[10px] text-slate-500 mt-1 block">提示：输入您的私有名（如 <code class="text-cyan-400 font-mono">admin</code>）载入您积累的全部资产；输入其他名字则载入对应独立空间。</span>
+          </div>
+
+          <div class="pt-3 border-t border-slate-800/80 space-y-2">
+            <label class="block text-slate-400 font-medium">一键生成好友专属免密链接</label>
+            <div class="flex gap-2">
+              <input id="friend-user-input" type="text" placeholder="输入好友代号，如: tom, alex, 小王" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-cyan-500 text-xs">
+              <button onclick="copyFriendLink()" type="button" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg font-bold transition flex items-center gap-1.5 whitespace-nowrap shadow-md shadow-cyan-600/20">
+                <i class="fa-solid fa-share-nodes"></i> 复制专属链接
+              </button>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed bg-slate-950 p-3 rounded-xl border border-slate-800/80">
+              💡 <span class="text-emerald-400 font-medium">保密机制</span>：好友通过链接或在任何手机/电脑浏览器打开时，系统会为其建立专属数据库，<span class="text-white font-bold">绝对看不到您的任何个人日记和资产</span>！
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div class="glass-card p-5 rounded-2xl max-w-lg mx-auto space-y-4">
         <div>
           <h2 class="text-sm font-bold text-white flex items-center gap-2">
@@ -537,6 +576,87 @@
   </div>
 
   <script>
+    function getCurrentUser() {
+      const u = localStorage.getItem('user_space') || 'admin';
+      return u.trim() || 'admin';
+    }
+
+    function setCurrentUser(u) {
+      const clean = (u || 'admin').replace(/[^\w\u4e00-\u9fa5_-]/g, '').trim() || 'admin';
+      localStorage.setItem('user_space', clean);
+      updateUserUI();
+      return clean;
+    }
+
+    function updateUserUI() {
+      const u = getCurrentUser();
+      const badge = document.getElementById('current-user-badge');
+      if (badge) badge.innerText = u;
+      const input = document.getElementById('setting-user-input');
+      if (input) input.value = u;
+    }
+
+    // 全局 fetch 拦截器：所有发往后端的请求自动附加 X-User-Space 请求头
+    const _origFetch = window.fetch;
+    window.fetch = async function(url, options = {}) {
+      options = options || {};
+      options.headers = options.headers || {};
+      if (options.headers instanceof Headers) {
+        options.headers.set('X-User-Space', getCurrentUser());
+      } else if (typeof options.headers === 'object') {
+        options.headers['X-User-Space'] = getCurrentUser();
+      }
+      return _origFetch(url, options);
+    };
+
+    function promptSwitchUser() {
+      const cur = getCurrentUser();
+      const next = prompt(`【多用户专属空间切换】\n当前用户名：${cur}\n\n请输入要载入的用户名（例如：admin 载入主库；或输入好友专属名字）：`, cur);
+      if (next !== null && next.trim()) {
+        const clean = setCurrentUser(next);
+        loadData().then(() => {
+          renderAssets();
+          alert(`已成功切换至【${clean}】的独立空间！\n当前所有日记与资产均已对应至该用户。`);
+        });
+      }
+    }
+
+    function switchUserByInput() {
+      const input = document.getElementById('setting-user-input');
+      const val = (input ? input.value : '').trim();
+      if (!val) {
+        alert('请输入有效的用户名');
+        return;
+      }
+      const clean = setCurrentUser(val);
+      loadData().then(() => {
+        renderAssets();
+        alert(`已成功切换至【${clean}】的独立空间！\n当前所有日记与资产均已对应至该用户。`);
+      });
+    }
+
+    function copyFriendLink() {
+      const input = document.getElementById('friend-user-input');
+      let friend = (input ? input.value : '').trim();
+      if (!friend) {
+        friend = prompt('请输入好友代号（如 tom, alex, 小王）：', 'guest');
+        if (!friend) return;
+        if (input) input.value = friend;
+      }
+      const cleanFriend = friend.replace(/[^\w\u4e00-\u9fa5_-]/g, '').trim() || 'guest';
+      const url = `${window.location.protocol}//${window.location.host}${window.location.pathname}?user=${encodeURIComponent(cleanFriend)}`;
+      
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(() => {
+          alert(`✅ 好友专属免密链接已复制到剪贴板！\n\n专属链接：\n${url}\n\n发送给好友后，对方打开即可使用自己的独立空间，绝对看不到您的任何日记与资产！`);
+        }).catch(() => {
+          prompt('请手动长按复制下方好友专属链接：', url);
+        });
+      } else {
+        prompt('请手动长按复制下方好友专属链接：', url);
+      }
+    }
+
     function formatContent(val) {
       if (val === null || val === undefined) return '';
       if (typeof val === 'string') return val;
@@ -1679,6 +1799,15 @@
     }
 
     window.onload = () => {
+      // 1. 检测 URL 中的 ?user=xxx 或 ?space=xxx，若存在则自动锁定该空间
+      const urlParams = new URLSearchParams(window.location.search);
+      const userFromUrl = urlParams.get('user') || urlParams.get('space');
+      if (userFromUrl) {
+        setCurrentUser(userFromUrl);
+      } else {
+        updateUserUI();
+      }
+
       if (localStorage.getItem('base_url')) document.getElementById('api-base-url').value = localStorage.getItem('base_url');
       if (localStorage.getItem('api_key')) document.getElementById('api-key').value = localStorage.getItem('api_key');
       let m = localStorage.getItem('model');
