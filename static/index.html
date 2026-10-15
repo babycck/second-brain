@@ -1276,6 +1276,31 @@
       }
 
       if (currentInputMode === 'note') {
+        if (/https?:\/\/[^\s]+/.test(text)) {
+          const urlMatch = text.match(/https?:\/\/[^\s]+/);
+          if (urlMatch) {
+            const btn = document.getElementById('btn-main-action');
+            const originalBtn = btn ? btn.innerHTML : '';
+            if (btn) btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> 正在提取小红书/网页文案...';
+            try {
+              const urlRes = await fetch('/api/url/parse', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: urlMatch[0] })
+              });
+              if (urlRes.ok) {
+                const urlData = await urlRes.json();
+                const fullText = `【${urlData.platform}】：${urlData.title}\n\n${urlData.content}`;
+                executeDirectAnalyze(fullText);
+                return;
+              }
+            } catch(e) {
+              console.warn("URL parse fallback", e);
+            } finally {
+              if (btn) btn.innerHTML = originalBtn;
+            }
+          }
+        }
         executeDirectAnalyze(text);
       } else {
         await fetchMatchedTargets(currentInputMode, text);
@@ -1801,14 +1826,15 @@
       cancelBrainstormQuote();
 
       // 2. 占位 Loading 气泡
+      const isUrlInput = /https?:\/\/[^\s]+/.test(msg);
       const loadingBubble = document.createElement('div');
       loadingBubble.id = 'bs-loading-bubble';
       loadingBubble.className = 'glass-card p-4 rounded-2xl border border-amber-500/30 text-xs text-slate-300 flex items-center gap-3 animate-pulse';
       loadingBubble.innerHTML = `
         <i class="fa-solid fa-circle-notch fa-spin text-amber-400 text-lg"></i>
         <div>
-          <div class="font-bold text-white text-xs">智囊团圆桌正在闭门研讨...</div>
-          <div class="text-[11px] text-slate-400 mt-0.5">编剧、操盘手、玄学大师、5岁小孩与80岁老者正在激烈碰撞交锋！</div>
+          <div class="font-bold text-white text-xs">${isUrlInput ? '正在智能提取小红书/网页笔记文案并交锋中...' : '智囊团圆桌正在闭门研讨...'}</div>
+          <div class="text-[11px] text-slate-400 mt-0.5">${isUrlInput ? '自动解析标题、文案正文与核心剧情点，五大席位即将就绪！' : '编剧、操盘手、玄学大师、5岁小孩与80岁老者正在激烈碰撞交锋！'}</div>
         </div>
       `;
       feed.appendChild(loadingBubble);
@@ -1847,6 +1873,25 @@
         // 4. 渲染本轮圆桌研讨卡片
         const turnBox = document.createElement('div');
         turnBox.className = 'space-y-3.5';
+
+        // 智能提取的小红书/网页笔记卡片
+        let parsedUrlHtml = '';
+        if (data.parsed_url) {
+          parsedUrlHtml = `
+            <div class="p-3 bg-gradient-to-r from-rose-950/70 via-slate-900 to-indigo-950/70 border border-rose-500/40 rounded-2xl space-y-2 text-xs shadow-md">
+              <div class="flex items-center justify-between">
+                <span class="text-rose-400 font-bold flex items-center gap-1.5 text-xs">
+                  <i class="fa-solid fa-link"></i> 已自动提取【${escapeHtml(data.parsed_url.platform || '小红书')}】笔记全案
+                </span>
+                <span class="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded-full border border-slate-800">
+                  <i class="fa-solid fa-check text-emerald-400 mr-1"></i>0成本自动提取
+                </span>
+              </div>
+              <div class="text-white font-bold text-xs sm:text-sm">${escapeHtml(data.parsed_url.title || '笔记原文')}</div>
+              ${data.parsed_url.content ? `<div class="text-[11px] text-slate-300 leading-relaxed max-h-28 overflow-y-auto bg-slate-950/80 p-2.5 rounded-xl border border-slate-800/80 whitespace-pre-wrap">${escapeHtml(data.parsed_url.content)}</div>` : ''}
+            </div>
+          `;
+        }
 
         // 模糊识别提示门禁条（仅在未锁定任何作品时才展现一次，一旦锁定后绝不再次弹出来要锁）
         let fuzzyGateHtml = '';
@@ -1929,7 +1974,7 @@
           </div>
         `;
 
-        turnBox.innerHTML = fuzzyGateHtml + speechesHtml + summaryHtml;
+        turnBox.innerHTML = parsedUrlHtml + fuzzyGateHtml + speechesHtml + summaryHtml;
         feed.appendChild(turnBox);
         scrollBrainstormToBottom(true);
 

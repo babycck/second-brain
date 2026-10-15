@@ -6,6 +6,7 @@ import time
 import re
 import urllib.parse
 import webbrowser
+import html
 from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, Request, HTTPException, Response
 from fastapi.staticfiles import StaticFiles
@@ -511,6 +512,135 @@ def clean_and_parse_dict(raw_text: str) -> Optional[Dict[str, Any]]:
         except Exception:
             pass
     return None
+
+class UrlParseRequest(BaseModel):
+    url: str
+
+async def fetch_url_content(raw_url: str) -> Optional[Dict[str, Any]]:
+    """
+    智能异步抓取并解析小红书、微信公众号及常规网页内容（完全免费，0成本）
+    """
+    if not raw_url or not raw_url.startswith(("http://", "https://")):
+        return None
+    
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) "
+            "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 "
+            "MicroMessenger/8.0.38(0x1800262c) NetType/WIFI Language/zh_CN"
+        ),
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "zh-CN,zh;q=0.9,en;q=0.8",
+    }
+    
+    parsed = urllib.parse.urlparse(raw_url)
+    domain = parsed.netloc.lower()
+    platform = "网页文章"
+    if "xhslink.com" in domain or "xiaohongshu.com" in domain:
+        platform = "小红书"
+    elif "mp.weixin.qq.com" in domain:
+        platform = "微信公众号"
+    elif "zhihu.com" in domain:
+        platform = "知乎"
+    elif "bilibili.com" in domain or "b23.tv" in domain:
+        platform = "哔哩哔哩"
+
+    try:
+        async with httpx.AsyncClient(timeout=15.0, follow_redirects=True, headers=headers) as client:
+            resp = await client.get(raw_url)
+            if resp.status_code != 200:
+                return None
+            
+            html_text = resp.text
+            title = ""
+            content = ""
+            
+            # 1. 小红书专属解析
+            if platform == "小红书":
+                t_match = re.search(r'<meta[^>]+(?:property|name)=["\'](?:og:)?title["\'][^>]+content=["\']([^"\']*)["\']', html_text, re.IGNORECASE)
+                if not t_match:
+                    t_match = re.search(r'<meta[^>]+content=["\']([^"\']*)["\'][^>]+(?:property|name)=["\'](?:og:)?title["\']', html_text, re.IGNORECASE)
+                if t_match:
+                    title = html.unescape(t_match.group(1)).strip()
+                
+                d_match = re.search(r'<meta[^>]+(?:property|name)=["\'](?:og:)?description["\'][^>]+content=["\']([^"\']*)["\']', html_text, re.IGNORECASE)
+                if not d_match:
+                    d_match = re.search(r'<meta[^>]+content=["\']([^"\']*)["\'][^>]+(?:property|name)=["\'](?:og:)?description["\']', html_text, re.IGNORECASE)
+                if d_match:
+                    content = html.unescape(d_match.group(1)).strip()
+                
+                state_match = re.search(r'window\.__INITIAL_STATE__\s*=\s*(\{.*?\});?</script>', html_text, re.DOTALL)
+                if state_match:
+                    try:
+                        state_data = json.loads(state_match.group(1))
+                        note_dict = state_data.get("note", {}).get("noteDetailMap", {})
+                        if note_dict:
+                            first_note = next(iter(note_dict.values()), {}).get("note", {})
+                            if first_note:
+                                n_title = first_note.get("title", "")
+                                n_desc = first_note.get("desc", "")
+                                if n_title:
+                                    title = n_title
+                                if n_desc:
+                                    content = n_desc
+                    except Exception:
+                        pass
+                
+                if not title and content:
+                    title = content[:24] + "..."
+            
+            # 2. 微信公众号专属解析
+            elif platform == "微信公众号":
+                t_match = re.search(r'<meta[^>]+property=["\']og:title["\'][^>]+content=["\']([^"\']*)["\']', html_text, re.IGNORECASE)
+                if t_match:
+                    title = html.unescape(t_match.group(1)).strip()
+                d_match = re.search(r'<meta[^>]+property=["\']og:description["\'][^>]+content=["\']([^"\']*)["\']', html_text, re.IGNORECASE)
+                if d_match:
+                    content = html.unescape(d_match.group(1)).strip()
+            
+            # 3. 通用网页解析
+            if not title:
+                t_match = re.search(r'<title>(.*?)</title>', html_text, re.IGNORECASE | re.DOTALL)
+                if t_match:
+                    title = html.unescape(t_match.group(1)).strip()
+                    title = re.sub(r'[\r\n\t]+', ' ', title)
+            
+            if not content:
+                d_match = re.search(r'<meta[^>]+name=["\']description["\'][^>]+content=["\']([^"\']*)["\']', html_text, re.IGNORECASE)
+                if d_match:
+                    content = html.unescape(d_match.group(1)).strip()
+                else:
+                    clean_body = re.sub(r'<(?:script|style)[^>]*>.*?</(?:script|style)>', '', html_text, flags=re.DOTALL | re.IGNORECASE)
+                    clean_text = re.sub(r'<[^>]+>', ' ', clean_body)
+                    clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+                    content = clean_text[:1500]
+            
+            if title:
+                title = re.sub(r'(\s*[-_|]\s*(小红书|微信公众号|知乎|哔哩哔哩)).*$', '', title, flags=re.IGNORECASE).strip()
+            
+            if not title and not content:
+                return None
+                
+            return {
+                "title": title or f"来自{platform}的内容",
+                "content": content or title,
+                "platform": platform,
+                "url": str(resp.url)
+            }
+    except Exception as e:
+        print(f"[URL Parser Error] {raw_url} -> {e}")
+        return None
+
+@app.post("/api/url/parse")
+async def parse_url_api(req: UrlParseRequest, request: Request):
+    user_id = extract_user_id(request)
+    check_space_access(user_id, request)
+    res = await fetch_url_content(req.url.strip())
+    if not res:
+        raise HTTPException(status_code=400, detail="未能解析该链接内容，可能是受防爬限制或链接已失效")
+    return res
+
+@app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     return Response(status_code=204)
 
@@ -973,11 +1103,22 @@ async def brainstorm_chat(req: BrainstormChatRequest, request: Request):
     if req.locked_work and req.locked_work.strip():
         locked_context = f"\n【用户已锁定核心作品全案】：『{req.locked_work.strip()}』\n智囊团全员已获知该作品锁定状态，后续请务必深度围绕该作品的真实凶案手法、核心诡计、时间差逻辑、博弈与名场面进行推演！\n"
 
+    # 智能识别小红书、微信公众号及常规网页分享链接并自动抓取提炼
+    url_match = re.search(r'https?://[^\s]+', msg)
+    parsed_url_info = None
+    url_context = ""
+    if url_match:
+        matched_url = url_match.group(0).rstrip("，。！？）】”'")
+        parsed_url_info = await fetch_url_content(matched_url)
+        if parsed_url_info:
+            url_context = f"\n\n【用户分享的{parsed_url_info['platform']}笔记/文章已自动深度提取】：\n• 标题：{parsed_url_info['title']}\n• 正文/文案：\n{parsed_url_info['content']}\n• 来源地址：{parsed_url_info['url']}\n请各位专家圆桌重点围绕该{parsed_url_info['platform']}笔记中记录的真实内容、人设立场、反差钩子与核心博弈，展开全方位硬核复盘拆解！\n"
+
     prompt = f"""你是由5位风格鲜明、跨越全生命周期的顶级智囊构成的【AI 专家圆桌复盘委员会】。
 当前研讨历史脉络：
 {history_text}
 {doc_context}
 {locked_context}
+{url_context}
 用户最新抛出的内容/复盘线索/反驳质疑：
 "{msg}"
 
@@ -1167,6 +1308,11 @@ async def brainstorm_chat(req: BrainstormChatRequest, request: Request):
             ],
             "council_summary": "五大席位达成共识：该议题融合了老辣博弈、玄学性格、童真破局与沧桑立意，具备极高沉淀价值！"
         }
+
+    if parsed_url_info:
+        data["parsed_url"] = parsed_url_info
+        if not data.get("detected_work") or data.get("detected_work") in ["原创脑洞探讨", "原创灵感脑洞"]:
+            data["detected_work"] = f"{parsed_url_info['platform']}《{parsed_url_info['title'][:16]}》"
 
     if req.locked_work and req.locked_work.strip():
         data["detected_work"] = req.locked_work.strip()
