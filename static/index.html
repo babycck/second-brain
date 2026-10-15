@@ -364,7 +364,7 @@
       <!-- 对话流互动容器 -->
       <div class="space-y-4">
         <!-- 历史讨论气泡与专家卡片流容器 -->
-        <div id="brainstorm-chat-feed" class="space-y-4">
+        <div id="brainstorm-chat-feed" class="space-y-4 pb-28 sm:pb-24">
           <!-- 默认欢迎引导卡 -->
           <div class="glass-card p-3.5 sm:p-4 rounded-2xl border border-slate-800 space-y-2 shadow-sm">
             <div class="flex items-center justify-between flex-wrap gap-2">
@@ -381,44 +381,45 @@
           </div>
         </div>
 
-        <!-- 悬浮/固定底部对话输入栏 -->
-        <div class="glass-card p-3 sm:p-4 rounded-2xl border border-amber-500/40 shadow-2xl space-y-2.5 sticky bottom-16 sm:bottom-4 z-20 backdrop-blur-xl bg-slate-950/90">
-          <!-- 引用反驳指示条 -->
-          <div id="bs-quote-badge" class="hidden flex items-center justify-between bg-amber-950/60 border border-amber-600/50 rounded-xl px-3 py-1.5 text-xs text-amber-300">
-            <div class="flex items-center gap-2 truncate">
-              <i class="fa-solid fa-quote-left text-amber-400"></i>
-              <span>正在针对 <b id="bs-quote-target" class="text-white">【席位】</b> 的观点进行反驳/追问</span>
+        <!-- 固定最底部的超简一体化输入栏（彻底告别框套框，滑动屏幕纹丝不动） -->
+        <div class="fixed bottom-14 sm:bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/80 px-3 py-2 sm:py-3 shadow-2xl">
+          <div class="max-w-5xl mx-auto space-y-1.5">
+            <!-- 极简引用反驳指示条 -->
+            <div id="bs-quote-badge" class="hidden flex items-center justify-between bg-amber-950/70 border border-amber-600/60 rounded-xl px-3 py-1 text-xs text-amber-300">
+              <div class="flex items-center gap-1.5 truncate">
+                <i class="fa-solid fa-quote-left text-amber-400 text-[10px]"></i>
+                <span>反驳目标：<b id="bs-quote-target" class="text-white">【席位】</b></span>
+              </div>
+              <button onclick="cancelBrainstormQuote()" type="button" class="text-slate-400 hover:text-rose-400 text-sm ml-2">&times;</button>
             </div>
-            <button onclick="cancelBrainstormQuote()" type="button" class="text-slate-400 hover:text-rose-400 text-sm ml-2" title="取消引用">&times;</button>
-          </div>
 
-          <!-- 文档附件指示器（如果有上传） -->
-          <div id="bs-file-badge" class="hidden flex items-center justify-between bg-slate-900/90 border border-cyan-800/60 rounded-xl px-3 py-1.5 text-xs text-cyan-300">
-            <div class="flex items-center gap-2 truncate">
-              <i class="fa-solid fa-file-circle-check text-cyan-400"></i>
-              <span id="bs-file-name" class="font-medium truncate">剧本复盘材料</span>
-              <span id="bs-file-stat" class="text-[10px] text-slate-400"></span>
+            <!-- 极简文件附件指示条 -->
+            <div id="bs-file-badge" class="hidden flex items-center justify-between bg-slate-900 border border-cyan-800/60 rounded-xl px-3 py-1 text-xs text-cyan-300">
+              <div class="flex items-center gap-1.5 truncate">
+                <i class="fa-solid fa-paperclip text-cyan-400 text-[10px]"></i>
+                <span id="bs-file-name" class="font-medium truncate">材料</span>
+                <span id="bs-file-stat" class="text-[10px] text-slate-400"></span>
+              </div>
+              <button onclick="removeBrainstormFile()" type="button" class="text-slate-400 hover:text-rose-400 text-sm ml-2">&times;</button>
             </div>
-            <button onclick="removeBrainstormFile()" type="button" class="text-slate-400 hover:text-rose-400 text-sm ml-2" title="移除此附件">&times;</button>
-          </div>
 
-          <div class="relative">
-            <textarea id="brainstorm-chat-input" rows="3"
-                      placeholder="畅所欲言：“我最近玩了xx剧本杀...”、“我最近看了xx综艺...”、“从小红书看到一个事情...”，或者直接反驳上面专家的观点...（Ctrl+Enter 或点击发送）"
-                      class="w-full bg-slate-900/90 border border-slate-700/90 rounded-xl p-3 sm:p-3.5 text-xs text-white focus:outline-none focus:border-amber-500 leading-relaxed shadow-inner"></textarea>
-          </div>
-
-          <div class="flex items-center justify-between flex-wrap gap-2 pt-0.5">
-            <div class="flex items-center gap-2">
+            <!-- 真正的一体化单框（左侧📎 + 中间无缝输入区 + 右侧发送） -->
+            <div class="flex items-center gap-2 bg-slate-900 border border-slate-700/80 rounded-2xl px-2.5 py-1.5 focus-within:border-amber-500 transition shadow-inner">
               <input type="file" id="bs-file-input" accept=".txt,.md,.text,.json,.doc,.docx" class="hidden" onchange="handleBrainstormFile(event)">
-              <button onclick="document.getElementById('bs-file-input').click()" type="button" class="bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-cyan-400 border border-slate-700/80 px-2.5 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm" title="上传剧本杀复盘文档、TXT或笔记材料">
-                <i class="fa-solid fa-paperclip text-cyan-400"></i> 上传复盘剧本/文档
+              <button onclick="document.getElementById('bs-file-input').click()" type="button" class="text-slate-400 hover:text-cyan-400 p-1.5 transition shrink-0" title="上传剧本杀复盘文档/TXT">
+                <i class="fa-solid fa-paperclip text-sm"></i>
+              </button>
+
+              <textarea id="brainstorm-chat-input" rows="1"
+                        placeholder="聊聊你想复盘的剧本杀、综艺、电影，或提出反驳...（Enter 发送）"
+                        onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendBrainstormChat(); }"
+                        class="flex-1 bg-transparent text-white text-xs placeholder:text-slate-500 focus:outline-none resize-none py-1 max-h-28 leading-relaxed"></textarea>
+
+              <button onclick="sendBrainstormChat()" id="btn-bs-send" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 shadow-md">
+                <span>发送</span>
+                <i class="fa-solid fa-arrow-up text-[11px]"></i>
               </button>
             </div>
-
-            <button onclick="sendBrainstormChat()" id="btn-bs-send" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white px-5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-amber-500/20">
-              <i class="fa-solid fa-paper-plane"></i> 发送研讨
-            </button>
           </div>
         </div>
       </div>
@@ -1563,6 +1564,7 @@
     let brainstormAttachedDoc = { name: '', text: '' };
     let currentQuotedSeat = null;
     let councilTurnsData = [];
+    let currentLockedWork = "";
 
     function fillBrainstormQuick(text) {
       const input = document.getElementById('brainstorm-chat-input');
@@ -1625,6 +1627,7 @@
       if (!confirm('确定要清空当前的复盘交锋记录，开启全新复盘吗？')) return;
       brainstormChatHistory = [];
       councilTurnsData = [];
+      currentLockedWork = "";
       cancelBrainstormQuote();
       removeBrainstormFile();
       const feed = document.getElementById('brainstorm-chat-feed');
@@ -1697,10 +1700,11 @@
       feed.appendChild(loadingBubble);
       loadingBubble.scrollIntoView({ behavior: 'smooth', block: 'end' });
 
-      // 3. 构建发送请求
+        // 3. 构建发送请求
       try {
         const payload = {
           message: msg,
+          locked_work: currentLockedWork,
           context_doc: brainstormAttachedDoc.text || '',
           history: brainstormChatHistory,
           model: localStorage.getItem('model') || 'deepseek-chat',
@@ -1733,8 +1737,9 @@
         // 模糊识别提示门禁条（如果识别出了作品）
         let fuzzyGateHtml = '';
         if (data.detected_work && data.detected_work !== '原创灵感脑洞' && data.detected_work !== '原创脑洞探讨') {
+          const lockBtnId = `btn-lock-${turnIndex}`;
           fuzzyGateHtml = `
-            <div class="p-3 bg-gradient-to-r from-amber-950/80 via-slate-900 to-indigo-950/80 border border-amber-500/40 rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs">
+            <div class="p-2.5 sm:p-3 bg-gradient-to-r from-amber-950/80 via-slate-900 to-indigo-950/80 border border-amber-500/40 rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs shadow-sm">
               <div class="flex items-center gap-2">
                 <span class="text-base">🎯</span>
                 <div>
@@ -1745,9 +1750,9 @@
                   <div class="text-[10px] text-slate-400 mt-0.5">${escapeHtml(data.detected_hint || '已自动定位全案核心诡计与名场面')}</div>
                 </div>
               </div>
-              <div class="flex items-center gap-2">
-                <button onclick="lockConfirmWork('${escapeHtml(data.detected_work)}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1 shadow-sm">
-                  <i class="fa-solid fa-check"></i> 锁定全案深挖
+              <div id="container-lock-${turnIndex}" class="flex items-center gap-2">
+                <button id="${lockBtnId}" onclick="lockConfirmWork('${escapeHtml(data.detected_work)}', '${lockBtnId}')" class="bg-amber-600 hover:bg-amber-500 text-white px-2.5 py-1 rounded-lg text-[11px] font-bold transition flex items-center gap-1 shadow-sm">
+                  <i class="fa-solid fa-lock-open text-[10px]"></i> 锁定此作品背景
                 </button>
               </div>
             </div>
@@ -1829,8 +1834,12 @@
       }
     }
 
-    function lockConfirmWork(workName) {
-      sendBrainstormChat(`请智囊团全员精准锁定并深度复盘【${workName}】全案：请详细拆解其核心诡计、时间差伪证手法、博弈机制与名场面高光！`);
+    function lockConfirmWork(workName, btnId) {
+      currentLockedWork = workName;
+      const el = document.getElementById(btnId);
+      if (el) {
+        el.outerHTML = `<span class="bg-emerald-950/90 border border-emerald-600/60 text-emerald-300 px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 shadow-sm"><i class="fa-solid fa-lock text-emerald-400"></i> 已锁定《${escapeHtml(workName)}》全案背景</span>`;
+      }
     }
 
     async function saveCardFromCouncil(turnIdx, sIdx) {

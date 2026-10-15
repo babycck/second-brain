@@ -276,6 +276,7 @@ class BrainstormRequest(BaseModel):
 
 class BrainstormChatRequest(BaseModel):
     message: str
+    locked_work: Optional[str] = ""
     context_doc: Optional[str] = ""
     history: List[Dict[str, Any]] = Field(default_factory=list)
     model: Optional[str] = "deepseek-chat"
@@ -968,10 +969,15 @@ async def brainstorm_chat(req: BrainstormChatRequest, request: Request):
         clipped_doc = req.context_doc.strip()[:15000]
         doc_context = f"\n\n【用户上传的附加复盘剧本/大纲材料】：\n{clipped_doc}\n"
 
+    locked_context = ""
+    if req.locked_work and req.locked_work.strip():
+        locked_context = f"\n【用户已锁定核心作品全案】：『{req.locked_work.strip()}』\n智囊团全员已获知该作品锁定状态，后续请务必深度围绕该作品的真实凶案手法、核心诡计、时间差逻辑、博弈与名场面进行推演！\n"
+
     prompt = f"""你是由5位风格鲜明、跨越全生命周期的顶级智囊构成的【AI 专家圆桌复盘委员会】。
 当前研讨历史脉络：
 {history_text}
 {doc_context}
+{locked_context}
 用户最新抛出的内容/复盘线索/反驳质疑：
 "{msg}"
 
