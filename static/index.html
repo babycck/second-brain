@@ -369,14 +369,20 @@
         </div>
 
         <!-- 快捷调用我的日记/已沉淀资产栏 -->
-        <div class="flex items-center justify-between text-xs pb-1 flex-wrap gap-2">
-          <span class="text-slate-400 flex items-center gap-1.5 font-medium">
+        <div class="space-y-1.5 pb-1">
+          <label class="block text-xs text-slate-400 flex items-center gap-1.5 font-medium">
             <i class="fa-solid fa-book-journal-whills text-emerald-400"></i>
             快捷调用日记 / 积累资产作为风暴议题：
-          </span>
-          <select id="brainstorm-asset-select" onchange="insertAssetIntoBrainstorm()" class="bg-slate-900 border border-slate-700 rounded-lg px-3 py-1.5 text-xs text-white max-w-sm focus:outline-none focus:border-amber-500">
-            <option value="">-- 选择一篇日记或资产快速注入 --</option>
-          </select>
+          </label>
+          <div class="relative w-full">
+            <select id="brainstorm-asset-select" onchange="insertAssetIntoBrainstorm()"
+                    class="w-full bg-slate-900 border border-slate-700/80 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-amber-500 truncate appearance-none pr-8 shadow-sm">
+              <option value="">-- 点击选择一篇日记或资产快速注入 --</option>
+            </select>
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+              <i class="fa-solid fa-chevron-down text-xs"></i>
+            </div>
+          </div>
         </div>
 
         <textarea id="brainstorm-input" rows="4" placeholder="输入任何奇怪的想法或议题：&#10;• “我想写一个主角靠给富豪装穷骗取信任的故事，如何设计开局黄金反差与借力打力机制？”&#10;• “如果把微短剧的连环打脸心理学机制，套用到现实团队激励里，怎么做？”"
@@ -419,9 +425,14 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
           <div>
             <label class="block text-slate-400 mb-1">【槽位 A · 核心骨架】（可选指定入库卡片，不选则纯随机）：</label>
-            <select id="gacha-anchor-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-white">
-              <option value="">-- 🎲 纯随机盲盒抽取 --</option>
-            </select>
+            <div class="relative w-full">
+              <select id="gacha-anchor-select" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-xs text-white truncate focus:outline-none focus:border-amber-500 appearance-none pr-8">
+                <option value="">-- 🎲 纯随机盲盒抽取 --</option>
+              </select>
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400">
+                <i class="fa-solid fa-chevron-down text-xs"></i>
+              </div>
+            </div>
           </div>
           <div>
             <label class="block text-slate-400 mb-1">【期望产出形态】：</label>
