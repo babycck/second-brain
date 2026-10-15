@@ -23,18 +23,34 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
-    body { background-color: #060911; color: #f1f5f9; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    .glass-card { background: rgba(12, 19, 35, 0.85); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.08); }
+    body {
+      background-color: #060911;
+      color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .glass-card {
+      background: rgba(12, 19, 35, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
     .glass-card:hover { border-color: rgba(56, 189, 248, 0.35); }
     .tab-active { background: rgba(56, 189, 248, 0.15); border-color: #38bdf8; color: #38bdf8; }
     .mode-btn-active { background: #0284c7 !important; color: #fff !important; font-weight: bold; }
-    .dim-btn:hover { border-color: #38bdf8; transform: translateY(-1px); }
+    .dim-btn:active, .mode-btn:active, button:active { transform: scale(0.97); }
+    /* 优化手机端触控滚动与防页面变形 */
+    @media (max-width: 640px) {
+      input, textarea, select {
+        font-size: 16px !important; /* 防止 iOS Safari 聚焦输入框时强行缩放页面 */
+      }
+    }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col antialiased">
 
   <!-- 顶部主导航 -->
-  <header class="border-b border-slate-800/90 px-3.5 sm:px-6 py-2.5 sm:py-3.5 flex flex-wrap items-center justify-between gap-2.5 glass-card sticky top-0 z-50">
+  <header class="border-b border-slate-800/90 px-4 sm:px-6 py-3 sm:py-3.5 flex items-center justify-between glass-card sticky top-0 z-40">
     <div class="flex items-center space-x-2.5">
       <div class="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 font-bold flex-shrink-0">
         <i class="fa-solid fa-brain text-sm"></i>
@@ -45,26 +61,33 @@
       </div>
     </div>
 
-    <nav class="flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs overflow-x-auto max-w-full">
-      <button onclick="switchTab('home')" id="tab-home" class="tab-btn whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg font-medium tab-active transition">
+    <!-- 桌面端保留顶部导航 -->
+    <nav class="hidden sm:flex items-center space-x-1 bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs">
+      <button onclick="switchTab('home')" id="tab-home" class="tab-btn px-4 py-1.5 rounded-lg font-medium tab-active transition">
         <i class="fa-solid fa-pen-to-square mr-1"></i> 万能捕获
       </button>
-      <button onclick="switchTab('assets')" id="tab-assets" class="tab-btn whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
+      <button onclick="switchTab('assets')" id="tab-assets" class="tab-btn px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
         <i class="fa-solid fa-layer-group mr-1"></i> 浏览积累
       </button>
-      <button onclick="switchTab('brainstorm')" id="tab-brainstorm" class="tab-btn whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
+      <button onclick="switchTab('brainstorm')" id="tab-brainstorm" class="tab-btn px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
         <i class="fa-solid fa-comments text-amber-400 mr-1"></i> 头脑风暴
       </button>
-      <button onclick="switchTab('gacha')" id="tab-gacha" class="tab-btn whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
+      <button onclick="switchTab('gacha')" id="tab-gacha" class="tab-btn px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
         <i class="fa-solid fa-dice mr-1"></i> 灵感炼金
       </button>
-      <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn whitespace-nowrap px-3 sm:px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
+      <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn px-4 py-1.5 rounded-lg font-medium text-slate-400 hover:text-slate-200 transition">
         <i class="fa-solid fa-gear mr-1"></i> 设置
       </button>
     </nav>
+
+    <!-- 移动端顶部状态指示小胶囊 -->
+    <div class="sm:hidden flex items-center gap-1.5 text-[11px] bg-slate-900/90 border border-slate-800 px-2.5 py-1 rounded-full text-slate-400">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+      <span id="mobile-top-status">云端就绪</span>
+    </div>
   </header>
 
-  <main class="flex-1 max-w-5xl w-full mx-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6">
+  <main class="flex-1 max-w-5xl w-full mx-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 pb-24 sm:pb-8">
 
     <!-- 1. 首页：三模式切换 + 锁定作品专属仪表盘 + 单项维度原子化爆破 -->
     <section id="view-home" class="space-y-4 sm:space-y-6">
@@ -90,24 +113,26 @@
         </div>
 
         <!-- 日记专属标题与标签录入栏（在日记模式下展开） -->
-        <div id="diary-fields-bar" class="hidden flex gap-2">
+        <div id="diary-fields-bar" class="hidden flex flex-col sm:flex-row gap-2">
           <input id="diary-title-input" type="text" placeholder="日记标题（留空自动使用今日日期，如：2026-10-15 随笔日记）"
-                 class="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                 class="flex-1 bg-slate-900 border border-slate-700/80 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
           <input id="diary-tags-input" type="text" placeholder="标签（如：随笔,灵感，逗号分隔）"
-                 class="w-48 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+                 class="w-full sm:w-48 bg-slate-900 border border-slate-700/80 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500">
         </div>
 
         <!-- 文本输入与上传全本文档区域 -->
-        <div class="relative">
+        <div class="space-y-2">
           <textarea id="main-input" rows="5" oninput="updateWordCount()" placeholder="随手粘贴内容、小说段落、或点击下方按钮直接上传本地全本文档（.txt / .md）..."
-                    class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-4 text-xs text-slate-200 focus:outline-none focus:border-cyan-500 leading-relaxed"></textarea>
+                    class="w-full bg-slate-900 border border-slate-700/80 rounded-xl p-3.5 sm:p-4 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 leading-relaxed"></textarea>
           
-          <div class="absolute right-3 bottom-3 flex items-center gap-2">
-            <input type="file" id="book-file-input" accept=".txt,.md,.text" class="hidden" onchange="handleFileUpload(event)">
-            <button onclick="document.getElementById('book-file-input').click()" type="button" class="bg-slate-800/90 hover:bg-slate-700 text-cyan-400 border border-cyan-800/70 px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-lg">
-              <i class="fa-solid fa-file-arrow-up"></i> 上传全本文档 (.txt / .md)
-            </button>
-            <span id="file-word-count" class="hidden text-[11px] bg-slate-950 px-2.5 py-1.5 rounded-lg text-slate-400 border border-slate-800"></span>
+          <div class="flex items-center justify-between text-xs text-slate-400 px-0.5">
+            <div class="flex items-center gap-2">
+              <input type="file" id="book-file-input" accept=".txt,.md,.text" class="hidden" onchange="handleFileUpload(event)">
+              <button onclick="document.getElementById('book-file-input').click()" type="button" class="bg-slate-900/90 hover:bg-slate-800 text-cyan-400 border border-slate-800 hover:border-cyan-700/60 px-3 py-1.5 rounded-lg text-xs font-medium transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-file-arrow-up"></i> 上传全本文档 (.txt / .md)
+              </button>
+            </div>
+            <span id="file-word-count" class="hidden text-[11px] bg-slate-950 px-2.5 py-1 rounded-md text-slate-400 border border-slate-800"></span>
           </div>
         </div>
 
@@ -118,21 +143,21 @@
             <span class="text-white font-bold" id="uploaded-file-title">《已加载全本文档》</span>
             <span class="text-slate-400 text-[11px]" id="uploaded-file-stat">已就绪</span>
           </div>
-          <button onclick="lockUploadedDocument()" class="bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-cyan-500/20">
+          <button onclick="lockUploadedDocument()" class="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-600 text-white px-4 py-2 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-md shadow-cyan-500/20">
             <i class="fa-solid fa-cubes"></i> 锁定此全本文档，展开 6 大解构维度仪表盘
           </button>
         </div>
 
-        <div class="flex justify-between items-center flex-wrap gap-2">
-          <div class="flex items-center gap-3 text-xs text-slate-500">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 pt-1">
+          <div class="flex items-center justify-between sm:justify-start gap-3 text-xs text-slate-500">
             <span id="model-indicator-wrap">模型：<span class="text-cyan-400 font-medium" id="current-model-label">deepseek-chat</span></span>
             <span id="upload-status" class="text-emerald-400 hidden"><i class="fa-solid fa-circle-check mr-1"></i> 文档就绪</span>
           </div>
-          <div class="flex items-center gap-2">
-            <button onclick="saveDirectNote()" id="btn-quick-save-note" type="button" class="bg-emerald-900/60 hover:bg-emerald-800 text-emerald-300 border border-emerald-700/60 px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+          <div class="grid grid-cols-1 sm:flex items-center gap-2 w-full sm:w-auto">
+            <button onclick="saveDirectNote()" id="btn-quick-save-note" type="button" class="w-full sm:w-auto justify-center bg-emerald-900/60 hover:bg-emerald-800 text-emerald-300 border border-emerald-700/60 px-4 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-sm active:scale-95">
               <i class="fa-solid fa-floppy-disk"></i> 免分析 · 直接存为日记
             </button>
-            <button onclick="handleMainAction()" id="btn-main-action" class="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 text-white px-6 py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/20">
+            <button onclick="handleMainAction()" id="btn-main-action" class="w-full sm:w-auto justify-center bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 text-white px-6 py-3 sm:py-2.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-lg shadow-cyan-500/20 active:scale-95">
               <i class="fa-solid fa-wand-magic-sparkles"></i> 开始深度拆解
             </button>
           </div>
@@ -526,8 +551,22 @@
         b.classList.remove('tab-active');
         b.classList.add('text-slate-400');
       });
-      document.getElementById('tab-' + t).classList.add('tab-active');
-      document.getElementById('tab-' + t).classList.remove('text-slate-400');
+      const tabEl = document.getElementById('tab-' + t);
+      if (tabEl) {
+        tabEl.classList.add('tab-active');
+        tabEl.classList.remove('text-slate-400');
+      }
+
+      // 同步高亮移动端底部导航
+      document.querySelectorAll('.bnav-btn').forEach(b => {
+        b.classList.remove('text-cyan-400', 'font-bold');
+        b.classList.add('text-slate-400', 'font-medium');
+      });
+      const bnavEl = document.getElementById('bnav-' + t);
+      if (bnavEl) {
+        bnavEl.classList.add('text-cyan-400', 'font-bold');
+        bnavEl.classList.remove('text-slate-400', 'font-medium');
+      }
 
       ['home', 'assets', 'brainstorm', 'gacha', 'settings'].forEach(v => {
         document.getElementById('view-' + v).classList.add('hidden');
@@ -537,6 +576,9 @@
       if (t === 'assets') renderAssets();
       if (t === 'brainstorm') populateBrainstormAssetOptions();
       if (t === 'gacha') populateGachaAnchorOptions();
+
+      // 平滑滚动回顶部
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function setInputMode(m) {
@@ -1382,41 +1424,47 @@
           </button>
         ` : '';
 
-        // 右上角添加快捷调用按钮 + 依据 + Prompt + 删除
         div.innerHTML = `
-          <div class="space-y-2">
-            <div class="flex items-center justify-between flex-wrap gap-2">
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between">
               ${catBadge}
-              <div class="flex items-center space-x-2">
+              <div class="flex items-center gap-2">
                 ${relationBtn}
-                <button onclick="sendAssetToBrainstorm('${a.id}')" class="text-[11px] text-amber-400 hover:text-amber-300 flex items-center gap-1 font-medium" title="将该日记/资产调入头脑风暴">
-                  <i class="fa-solid fa-comments text-[10px]"></i> 投入风暴
-                </button>
-                <button onclick="sendAssetToGacha('${a.id}')" class="text-[11px] text-emerald-400 hover:text-emerald-300 flex items-center gap-1 font-medium" title="作为炼金机核心骨架">
-                  <i class="fa-solid fa-dice text-[10px]"></i> 投入炼金
-                </button>
-                <button onclick="viewEvidence('${a.id}')" class="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-medium">
-                  <i class="fa-solid fa-quote-left text-[10px]"></i> 依据
-                </button>
-                <button onclick="copyPromptSugar('${a.id}')" class="text-[11px] text-slate-400 hover:text-slate-200 flex items-center gap-1 font-medium">
-                  <i class="fa-solid fa-terminal text-[10px]"></i> Prompt
-                </button>
-                <button onclick="deleteAssetCard('${a.id}', '${a.title.replace(/'/g, "\\'")}')" class="text-[11px] text-slate-500 hover:text-rose-400 flex items-center gap-1 font-medium transition" title="删除该卡片">
-                  <i class="fa-solid fa-trash-can text-[10px]"></i>
+                <button onclick="deleteAssetCard('${a.id}', '${a.title.replace(/'/g, "\\'")}')" class="text-xs text-slate-500 hover:text-rose-400 p-1 transition" title="删除该卡片">
+                  <i class="fa-solid fa-trash-can"></i>
                 </button>
               </div>
             </div>
-            <h4 class="font-bold text-white text-sm">${a.title}</h4>
-            <div class="text-[11px] text-slate-400 bg-slate-950/60 p-2.5 rounded-lg border border-slate-900">
-              <span class="text-slate-500 font-bold block mb-0.5">适用场景/何时调用：</span>
+            <h4 class="font-bold text-white text-sm sm:text-base tracking-wide">${a.title}</h4>
+            <div class="text-[11px] text-slate-400 bg-slate-950/70 p-2.5 rounded-xl border border-slate-900 leading-relaxed">
+              <span class="text-slate-500 font-bold block mb-0.5">何时调用 / 适用场景：</span>
               ${formatContent(a.scenario) || '通用场景'}
             </div>
             <div class="text-xs text-slate-200 whitespace-pre-wrap leading-relaxed">${formatContent(a.content)}</div>
           </div>
-          <div class="flex items-center justify-between pt-2 border-t border-slate-800/80 text-[10px] text-slate-500">
-            <span>出处：${a.source || '外部输入'}</span>
-            <div class="flex gap-1 flex-wrap">
-              ${(a.tags || []).map(t => `<span class="bg-slate-900 px-1.5 py-0.5 rounded text-slate-400">#${t}</span>`).join('')}
+
+          <div class="pt-3 border-t border-slate-800/80 space-y-2">
+            <div class="flex items-center justify-between text-[10px] text-slate-500">
+              <span class="truncate max-w-[160px]">出处：${a.source || '外部输入'}</span>
+              <div class="flex gap-1 flex-wrap">
+                ${(a.tags || []).map(t => `<span class="bg-slate-900 px-1.5 py-0.5 rounded text-slate-400">#${t}</span>`).join('')}
+              </div>
+            </div>
+
+            <!-- 底部移动端触控动作工具条 -->
+            <div class="grid grid-cols-4 gap-1.5 pt-1 text-xs">
+              <button onclick="sendAssetToBrainstorm('${a.id}')" class="bg-amber-950/50 hover:bg-amber-900/70 text-amber-300 border border-amber-800/50 py-1.5 px-2 rounded-lg text-center font-medium transition flex items-center justify-center gap-1 active:scale-95">
+                <i class="fa-solid fa-comments text-[11px]"></i> 风暴
+              </button>
+              <button onclick="sendAssetToGacha('${a.id}')" class="bg-emerald-950/50 hover:bg-emerald-900/70 text-emerald-300 border border-emerald-800/50 py-1.5 px-2 rounded-lg text-center font-medium transition flex items-center justify-center gap-1 active:scale-95">
+                <i class="fa-solid fa-dice text-[11px]"></i> 炼金
+              </button>
+              <button onclick="viewEvidence('${a.id}')" class="bg-slate-900 hover:bg-slate-800 text-cyan-400 border border-slate-800 py-1.5 px-2 rounded-lg text-center font-medium transition flex items-center justify-center gap-1 active:scale-95">
+                <i class="fa-solid fa-quote-left text-[11px]"></i> 依据
+              </button>
+              <button onclick="copyPromptSugar('${a.id}')" class="bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-800 py-1.5 px-2 rounded-lg text-center font-medium transition flex items-center justify-center gap-1 active:scale-95">
+                <i class="fa-solid fa-terminal text-[11px]"></i> 语法糖
+              </button>
             </div>
           </div>
         `;
@@ -1623,5 +1671,29 @@
       loadData();
     };
   </script>
+
+  <!-- 移动端专属 iOS 底部沉浸导航栏 -->
+  <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/80 px-2 py-1 flex items-center justify-around text-[10px]" style="padding-bottom: max(env(safe-area-inset-bottom), 8px);">
+    <button onclick="switchTab('home')" id="bnav-home" class="bnav-btn flex flex-col items-center justify-center py-1 px-3 text-cyan-400 font-bold transition">
+      <i class="fa-solid fa-pen-to-square text-base mb-0.5"></i>
+      <span>捕获</span>
+    </button>
+    <button onclick="switchTab('assets')" id="bnav-assets" class="bnav-btn flex flex-col items-center justify-center py-1 px-3 text-slate-400 font-medium transition">
+      <i class="fa-solid fa-layer-group text-base mb-0.5"></i>
+      <span>积累</span>
+    </button>
+    <button onclick="switchTab('brainstorm')" id="bnav-brainstorm" class="bnav-btn flex flex-col items-center justify-center py-1 px-3 text-slate-400 font-medium transition">
+      <i class="fa-solid fa-comments text-base mb-0.5"></i>
+      <span>风暴</span>
+    </button>
+    <button onclick="switchTab('gacha')" id="bnav-gacha" class="bnav-btn flex flex-col items-center justify-center py-1 px-3 text-slate-400 font-medium transition">
+      <i class="fa-solid fa-dice text-base mb-0.5"></i>
+      <span>炼金</span>
+    </button>
+    <button onclick="switchTab('settings')" id="bnav-settings" class="bnav-btn flex flex-col items-center justify-center py-1 px-3 text-slate-400 font-medium transition">
+      <i class="fa-solid fa-gear text-base mb-0.5"></i>
+      <span>设置</span>
+    </button>
+  </nav>
 </body>
 </html>
