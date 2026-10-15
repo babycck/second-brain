@@ -52,6 +52,16 @@
         font-size: 16px !important; /* 防止 iOS Safari 聚焦输入框时强行缩放页面 */
       }
     }
+    @media (max-width: 639px) {
+      .bs-chat-bottom-bar {
+        bottom: calc(52px + max(env(safe-area-inset-bottom, 0px), 8px)) !important;
+      }
+    }
+    @media (min-width: 640px) {
+      .bs-chat-bottom-bar {
+        bottom: 0 !important;
+      }
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col antialiased">
@@ -364,7 +374,7 @@
       <!-- 对话流互动容器 -->
       <div class="space-y-4">
         <!-- 历史讨论气泡与专家卡片流容器 -->
-        <div id="brainstorm-chat-feed" class="space-y-4 pb-28 sm:pb-24">
+        <div id="brainstorm-chat-feed" class="space-y-4 pb-44 sm:pb-24">
           <!-- 默认欢迎引导卡 -->
           <div class="glass-card p-3.5 sm:p-4 rounded-2xl border border-slate-800 space-y-2 shadow-sm">
             <div class="flex items-center justify-between flex-wrap gap-2">
@@ -381,8 +391,8 @@
           </div>
         </div>
 
-        <!-- 固定最底部的超简一体化输入栏（彻底告别框套框，滑动屏幕纹丝不动） -->
-        <div class="fixed bottom-14 sm:bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/80 px-3 py-2 sm:py-3 shadow-2xl">
+        <!-- 固定最底部的超简一体化输入栏（彻底告别框套框，精准吸附在移动端菜单正上方） -->
+        <div class="bs-chat-bottom-bar fixed left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/80 px-3 py-2 sm:py-3 shadow-2xl">
           <div class="max-w-5xl mx-auto space-y-1.5">
             <!-- 极简引用反驳指示条 -->
             <div id="bs-quote-badge" class="hidden flex items-center justify-between bg-amber-950/70 border border-amber-600/60 rounded-xl px-3 py-1 text-xs text-amber-300">
