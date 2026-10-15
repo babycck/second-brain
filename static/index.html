@@ -360,90 +360,24 @@
     </section>
 
     <!-- 1. AI 专家圆桌复盘 · 灵感对话流（首页核心） -->
-    <section id="view-brainstorm" class="space-y-4 sm:space-y-6">
-      <!-- 顶部圆桌席位看板 -->
-      <div class="glass-card p-4 sm:p-5 rounded-2xl border border-amber-500/30 shadow-xl space-y-3.5">
-        <div class="flex items-center justify-between flex-wrap gap-2">
-          <div>
-            <h2 class="text-base font-bold text-white flex items-center gap-2">
-              <i class="fa-solid fa-comments text-amber-400"></i> AI 专家圆桌复盘 · 灵感对话流
-            </h2>
-            <p class="text-xs text-slate-400 mt-1 leading-relaxed">
-              随时给智囊团倾倒你最近玩的<span class="text-amber-400 font-medium">剧本杀</span>、看的<span class="text-cyan-400 font-medium">综艺/影视</span>、听到的<span class="text-rose-400 font-medium">离奇八卦</span>或<span class="text-purple-400 font-medium">小红书脑洞</span>。五大席位专家轮流各发言一次，精准提炼法则卡片；中意即可一键存入大脑，有异议可随时反驳开喷！
-            </p>
-          </div>
-          <button onclick="clearBrainstormChat()" class="text-xs bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white px-3 py-1.5 rounded-lg transition flex items-center gap-1.5 shadow-sm">
-            <i class="fa-solid fa-rotate-right text-slate-400"></i> 新建复盘
-          </button>
-        </div>
-
-        <!-- 5位常驻席位专家展示条 -->
-        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2 text-xs">
-          <div class="bg-slate-950/80 border border-rose-800/40 rounded-xl p-2.5 flex items-center gap-2 shadow-sm">
-            <div class="w-8 h-8 rounded-lg bg-rose-950/80 flex items-center justify-center text-base border border-rose-500/30 shrink-0">🎬</div>
-            <div class="overflow-hidden">
-              <div class="font-bold text-rose-400 text-xs truncate">主创·老辣编剧</div>
-              <div class="text-[10px] text-slate-400 truncate">反差钩子·叙事反转</div>
-            </div>
-          </div>
-          <div class="bg-slate-950/80 border border-cyan-800/40 rounded-xl p-2.5 flex items-center gap-2 shadow-sm">
-            <div class="w-8 h-8 rounded-lg bg-cyan-950/80 flex items-center justify-center text-base border border-cyan-500/30 shrink-0">♟️</div>
-            <div class="overflow-hidden">
-              <div class="font-bold text-cyan-400 text-xs truncate">决策·战略操盘</div>
-              <div class="text-[10px] text-slate-400 truncate">利益博弈·借力破局</div>
-            </div>
-          </div>
-          <div class="bg-slate-950/80 border border-purple-800/40 rounded-xl p-2.5 flex items-center gap-2 shadow-sm">
-            <div class="w-8 h-8 rounded-lg bg-purple-950/80 flex items-center justify-center text-base border border-purple-500/30 shrink-0">🔮</div>
-            <div class="overflow-hidden">
-              <div class="font-bold text-purple-400 text-xs truncate">玄机·星座/MBTI</div>
-              <div class="text-[10px] text-slate-400 truncate">性格暗面·宿命因果</div>
-            </div>
-          </div>
-          <div class="bg-slate-950/80 border border-amber-800/40 rounded-xl p-2.5 flex items-center gap-2 shadow-sm">
-            <div class="w-8 h-8 rounded-lg bg-amber-950/80 flex items-center justify-center text-base border border-amber-500/30 shrink-0">🎈</div>
-            <div class="overflow-hidden">
-              <div class="font-bold text-amber-400 text-xs truncate">纯真·5岁小孩</div>
-              <div class="text-[10px] text-slate-400 truncate">天真可爱·童言戳穿</div>
-            </div>
-          </div>
-          <div class="bg-slate-950/80 border border-emerald-800/40 rounded-xl p-2.5 flex items-center gap-2 shadow-sm col-span-2 sm:col-span-1">
-            <div class="w-8 h-8 rounded-lg bg-emerald-950/80 flex items-center justify-center text-base border border-emerald-500/30 shrink-0">🍵</div>
-            <div class="overflow-hidden">
-              <div class="font-bold text-emerald-400 text-xs truncate">岁月·80岁老者</div>
-              <div class="text-[10px] text-slate-400 truncate">看尽生死·人间悲悯</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <section id="view-brainstorm" class="space-y-4">
       <!-- 对话流互动容器 -->
       <div class="space-y-4">
         <!-- 历史讨论气泡与专家卡片流容器 -->
         <div id="brainstorm-chat-feed" class="space-y-4">
           <!-- 默认欢迎引导卡 -->
-          <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3">
-            <div class="flex items-center gap-2 text-amber-400 font-bold text-xs sm:text-sm">
-              <i class="fa-solid fa-sparkles"></i> 智囊团圆桌已就绪，欢迎开门见山发起对话：
+          <div class="glass-card p-3.5 sm:p-4 rounded-2xl border border-slate-800 space-y-2 shadow-sm">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-2 text-amber-400 font-bold text-xs sm:text-sm">
+                <i class="fa-solid fa-sparkles"></i> 智囊团圆桌已就绪，随时畅所欲言：
+              </div>
+              <button onclick="clearBrainstormChat()" class="text-xs bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-rotate-right text-slate-400"></i> 新建复盘
+              </button>
             </div>
             <p class="text-xs text-slate-300 leading-relaxed">
-              随时在下方输入框倾倒你的体验与想法。系统会自动先模糊检索识别对应作品，您可以一键<b>【锁定全案深度复盘】</b>或<b>【仅作脑洞发散】</b>，5位席位专家将轮流发言并生成法则卡片！遇到有异议或漏洞，还可随时点击卡片引用反驳开喷！
+              随心倾倒你最近玩的剧本杀、看的综艺/影视、听到的离奇八卦或脑洞随笔。系统会自动模糊定位作品，五大席位专家轮流深度复盘，生成法则卡片。中意即可一键存入积累，有异议可随时点击卡片引用反驳！
             </p>
-            <div class="flex flex-wrap gap-1.5 pt-1">
-              <span class="text-[11px] text-slate-400 self-center mr-1">点选快捷灵感发起：</span>
-              <button onclick="fillBrainstormQuick('我最近玩了硬核剧本杀《年轮》，凶手时间线作案和双向伪证太绝了，帮我复盘一下核心诡计与设计精髓')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-amber-300 hover:text-white px-2.5 py-1 rounded-lg transition">
-                🎲 剧本杀《年轮》复盘
-              </button>
-              <button onclick="fillBrainstormQuick('我看了《极限挑战》第一季金条争夺战，帮我复盘里面有哪些经典的人性背叛与利益博弈机制')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-cyan-300 hover:text-white px-2.5 py-1 rounded-lg transition">
-                📺 《极限挑战》金条博弈
-              </button>
-              <button onclick="fillBrainstormQuick('在《明星大侦探》的密室连环杀人案里，搜证视角盲区是如何欺骗侦探的？')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-rose-300 hover:text-white px-2.5 py-1 rounded-lg transition">
-                🕵️ 《明侦》视角盲区
-              </button>
-              <button onclick="fillBrainstormQuick('从小红书看到一个反常识热点：越是老实人设在利益反转时越容易引发群体同理心，怎么提炼成故事法则？')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-purple-300 hover:text-white px-2.5 py-1 rounded-lg transition">
-                📕 小红书反常识奇思
-              </button>
-            </div>
           </div>
         </div>
 
@@ -1696,28 +1630,18 @@
       const feed = document.getElementById('brainstorm-chat-feed');
       if (feed) {
         feed.innerHTML = `
-          <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800 space-y-3">
-            <div class="flex items-center gap-2 text-amber-400 font-bold text-xs sm:text-sm">
-              <i class="fa-solid fa-sparkles"></i> 智囊团圆桌已就绪，欢迎开门见山发起对话：
+          <div class="glass-card p-3.5 sm:p-4 rounded-2xl border border-slate-800 space-y-2 shadow-sm">
+            <div class="flex items-center justify-between flex-wrap gap-2">
+              <div class="flex items-center gap-2 text-amber-400 font-bold text-xs sm:text-sm">
+                <i class="fa-solid fa-sparkles"></i> 智囊团圆桌已就绪，随时畅所欲言：
+              </div>
+              <button onclick="clearBrainstormChat()" class="text-xs bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white px-2.5 py-1 rounded-lg transition flex items-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-rotate-right text-slate-400"></i> 新建复盘
+              </button>
             </div>
             <p class="text-xs text-slate-300 leading-relaxed">
-              随时在下方输入框倾倒你的体验与想法。系统会自动先模糊检索识别对应作品，您可以一键<b>【锁定全案深度复盘】</b>或<b>【仅作脑洞发散】</b>，5位席位专家将轮流发言并生成法则卡片！遇到有异议或漏洞，还可随时点击卡片引用反驳开喷！
+              随心倾倒你最近玩的剧本杀、看的综艺/影视、听到的离奇八卦或脑洞随笔。系统会自动模糊定位作品，五大席位专家轮流深度复盘，生成法则卡片。中意即可一键存入积累，有异议可随时点击卡片引用反驳！
             </p>
-            <div class="flex flex-wrap gap-1.5 pt-1">
-              <span class="text-[11px] text-slate-400 self-center mr-1">点选快捷灵感发起：</span>
-              <button onclick="fillBrainstormQuick('我最近玩了硬核剧本杀《年轮》，凶手时间线作案和双向伪证太绝了，帮我复盘一下核心诡计与设计精髓')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-amber-300 hover:text-white px-2.5 py-1 rounded-lg transition">
-                🎲 剧本杀《年轮》复盘
-              </button>
-              <button onclick="fillBrainstormQuick('我看了《极限挑战》第一季金条争夺战，帮我复盘里面有哪些经典的人性背叛与利益博弈机制')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-cyan-300 hover:text-white px-2.5 py-1 rounded-lg transition">
-                📺 《极限挑战》金条博弈
-              </button>
-              <button onclick="fillBrainstormQuick('在《明星大侦探》的密室连环杀人案里，搜证视角盲区是如何欺骗侦探的？')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-rose-300 hover:text-white px-2.5 py-1 rounded-lg transition">
-                🕵️ 《明侦》视角盲区
-              </button>
-              <button onclick="fillBrainstormQuick('从小红书看到一个反常识热点：越是老实人设在利益反转时越容易引发群体同理心，怎么提炼成故事法则？')" class="text-[11px] bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-purple-300 hover:text-white px-2.5 py-1 rounded-lg transition">
-                📕 小红书反常识奇思
-              </button>
-            </div>
           </div>
         `;
       }
