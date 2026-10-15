@@ -468,24 +468,43 @@
 
     <!-- 5. 设置 -->
     <section id="view-settings" class="hidden space-y-4">
-      <!-- 👑 babycck 最高管理控制台（仅 babycck 可见，其他人无权查看和分享） -->
-      <div id="admin-control-panel" class="glass-card p-5 rounded-2xl max-w-lg mx-auto space-y-4 border border-amber-500/40 shadow-xl shadow-amber-500/5">
+      <!-- 👑 最高管理控制台（仅限已绑定的管理设备可见，其他人无法查看和访问） -->
+      <div id="admin-control-panel" class="hidden glass-card p-5 rounded-2xl max-w-lg mx-auto space-y-4 border border-amber-500/40 shadow-xl shadow-amber-500/5">
         <div class="flex items-center justify-between border-b border-slate-800 pb-3">
           <div>
             <h2 class="text-sm font-bold text-white flex items-center gap-2">
-              <i class="fa-solid fa-crown text-amber-400"></i> babycck 最高管理控制台
+              <i class="fa-solid fa-crown text-amber-400"></i> 最高管理控制台
             </h2>
-            <p class="text-[11px] text-slate-400 mt-1">您是最高管理员。只有您可以为好友开通独立空间并生成专属分享代码。</p>
+            <p class="text-[11px] text-slate-400 mt-1">本机已通过专属设备锁认证。只有您可以开通好友独立空间并生成专属代码。</p>
           </div>
-          <span class="text-[10px] text-amber-300 bg-amber-950 border border-amber-700/80 px-2.5 py-0.5 rounded-full font-bold">超级管理员</span>
+          <span class="text-[10px] text-amber-300 bg-amber-950 border border-amber-700/80 px-2.5 py-0.5 rounded-full font-bold">已授权设备</span>
         </div>
 
         <div class="space-y-3.5 text-xs">
+          <!-- 设备锁专属管理卡片 -->
+          <div class="p-3 bg-slate-950/80 rounded-xl border border-amber-600/30 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-amber-400 font-bold flex items-center gap-1.5">
+                <i class="fa-solid fa-shield-halved"></i> 专属设备指纹锁（已绑定）
+              </span>
+              <button onclick="copyAdminAuthLink()" type="button" class="text-[11px] text-amber-300 hover:text-white underline">
+                复制新设备绑定链接
+              </button>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-slate-400">
+              <span>设备密钥：<code id="display-device-key" class="text-amber-300 font-mono">bbk8899</code></span>
+              <button onclick="changeDeviceKeyPrompt()" type="button" class="text-[10px] bg-slate-800 hover:bg-slate-700 px-2 py-0.5 rounded text-slate-300 border border-slate-700">
+                修改密钥
+              </button>
+            </div>
+            <p class="text-[10px] text-slate-500">其他人即使知道管理员名字，没有您的设备密钥也绝对进不来！</p>
+          </div>
+
           <!-- 切换空间 -->
           <div>
-            <label class="block text-slate-400 mb-1 font-medium">当前空间：<span class="text-amber-400 font-bold">babycck（主库）</span></label>
+            <label class="block text-slate-400 mb-1 font-medium">切换查看空间：</label>
             <div class="flex gap-2">
-              <input id="setting-user-input" type="text" placeholder="输入要切换的空间（如: babycck, tom, any, 小明）" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500 font-mono text-xs">
+              <input id="setting-user-input" type="text" placeholder="输入要切换的空间（如: tom, any, 小明）" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500 font-mono text-xs">
               <button onclick="switchUserByInput()" type="button" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3.5 py-2 rounded-lg font-bold transition flex items-center gap-1.5 whitespace-nowrap">
                 <i class="fa-solid fa-arrow-right-to-bracket text-xs"></i> 载入空间
               </button>
@@ -523,7 +542,7 @@
         </div>
       </div>
 
-      <!-- 👤 普通好友专属面板（非 babycck 时显示，完全杜绝分享权限） -->
+      <!-- 👤 普通好友专属面板（非管理员已绑定设备时显示，完全杜绝分享权限，不泄露任何管理员信息） -->
       <div id="friend-user-panel" class="hidden glass-card p-5 rounded-2xl max-w-lg mx-auto space-y-3 border border-cyan-500/30">
         <div class="flex items-center justify-between border-b border-slate-800 pb-2">
           <div>
@@ -535,8 +554,8 @@
           <span class="text-[10px] text-cyan-400 bg-cyan-950 border border-cyan-800/80 px-2 py-0.5 rounded-full font-bold">独立私有库</span>
         </div>
         <p class="text-xs text-slate-300 leading-relaxed bg-slate-950 p-3 rounded-xl border border-slate-800">
-          🔒 <span class="text-emerald-400 font-medium">数据物理隔离已生效</span>：您在此处保存的所有日记、随笔、资料模型与风暴记录均为独立私有数据，管理员与任何其他人均不可见。<br>
-          <span class="text-slate-500 text-[11px] mt-1 block">（注：好友账号仅拥有个人脑库使用权限，无开通与管理其他空间的权限）</span>
+          🔒 <span class="text-emerald-400 font-medium">数据物理隔离已生效</span>：您在此处保存的所有日记、随笔、资料模型与风暴记录均为独立私有数据，任何其他人都不可见。<br>
+          <span class="text-slate-500 text-[11px] mt-1 block">（注：好友账号仅拥有个人脑库使用权限）</span>
         </p>
         <div class="pt-1 flex items-center justify-between">
           <span class="text-[11px] text-slate-500">如需切换空间：</span>
@@ -658,39 +677,69 @@
       return clean;
     }
 
+    let isDeviceAuthorizedAdmin = false;
+
+    async function checkAdminAuth() {
+      try {
+        const res = await _origFetch('/api/admin/check_auth', {
+          headers: {
+            'X-Admin-Device-Token': localStorage.getItem('admin_device_token') || ''
+          }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          isDeviceAuthorizedAdmin = !!data.is_admin;
+          updateUserUI();
+          return isDeviceAuthorizedAdmin;
+        }
+      } catch(e) {}
+      isDeviceAuthorizedAdmin = false;
+      updateUserUI();
+      return false;
+    }
+
     function updateUserUI() {
       const u = getCurrentUser();
-      const isAdmin = (u === ADMIN_USER);
+      const isAdminActive = (isDeviceAuthorizedAdmin && u === ADMIN_USER);
 
       const badge = document.getElementById('current-user-badge');
       if (badge) {
-        badge.innerHTML = isAdmin ? `<span class="text-amber-400 font-bold">👑 ${u}</span>` : `<span class="text-cyan-400 font-medium">👤 ${u}</span>`;
+        if (isAdminActive) {
+          badge.innerHTML = `<span class="text-amber-400 font-bold"><i class="fa-solid fa-crown mr-1"></i>管理员空间</span>`;
+        } else {
+          badge.innerHTML = `<span class="text-cyan-400 font-medium"><i class="fa-solid fa-circle-user mr-1"></i>${u}</span>`;
+        }
       }
 
       const adminPanel = document.getElementById('admin-control-panel');
       const friendPanel = document.getElementById('friend-user-panel');
-      if (adminPanel) adminPanel.classList.toggle('hidden', !isAdmin);
-      if (friendPanel) friendPanel.classList.toggle('hidden', isAdmin);
+      if (adminPanel) adminPanel.classList.toggle('hidden', !isAdminActive);
+      if (friendPanel) friendPanel.classList.toggle('hidden', isAdminActive);
 
       const input = document.getElementById('setting-user-input');
       if (input) input.value = u;
       const curUserSpan = document.getElementById('cur-user-display');
       if (curUserSpan) curUserSpan.innerText = u;
 
-      if (isAdmin) {
+      if (isAdminActive) {
         fetchAdminSpaces();
+        const keyDisplay = document.getElementById('display-device-key');
+        if (keyDisplay) keyDisplay.innerText = localStorage.getItem('admin_device_token') || 'bbk8899';
       }
     }
 
-    // 全局 fetch 拦截器：所有发往后端的请求自动附加 X-User-Space 请求头
+    // 全局 fetch 拦截器：自动注入空间与设备通行证，403 时静默拦截保护
     const _origFetch = window.fetch;
     window.fetch = async function(url, options = {}) {
       options = options || {};
       options.headers = options.headers || {};
+      const devToken = localStorage.getItem('admin_device_token') || '';
       if (options.headers instanceof Headers) {
         options.headers.set('X-User-Space', getCurrentUser());
+        if (devToken) options.headers.set('X-Admin-Device-Token', devToken);
       } else if (typeof options.headers === 'object') {
         options.headers['X-User-Space'] = getCurrentUser();
+        if (devToken) options.headers['X-Admin-Device-Token'] = devToken;
       }
       const res = await _origFetch(url, options);
       if (res.status === 403) {
@@ -698,10 +747,10 @@
           const clone = res.clone();
           const errData = await clone.json();
           if (errData && errData.detail) {
-            alert(errData.detail);
-            if (errData.detail.includes('尚未由管理员')) {
-              setCurrentUser(ADMIN_USER);
-              loadData();
+            if (errData.detail.includes('未授权设备') || errData.detail.includes('私密空间')) {
+              promptAuthorizeDevice();
+            } else {
+              alert(errData.detail);
             }
           }
         } catch(e) {}
@@ -709,9 +758,61 @@
       return res;
     };
 
+    function promptAuthorizeDevice() {
+      const code = prompt('🔐 该私密空间受专属设备锁保护！\n如果您是管理员，请输入设备专属通行密钥以授权绑定当前手机：');
+      if (code && code.trim()) {
+        localStorage.setItem('admin_device_token', code.trim());
+        checkAdminAuth().then((ok) => {
+          if (ok) {
+            alert('✅ 恭喜！当前手机已成功绑定为管理员专属设备！');
+            loadData();
+          } else {
+            alert('❌ 密钥错误，绑定失败！无法访问该空间。');
+            localStorage.removeItem('admin_device_token');
+            setCurrentUser('guest');
+            loadData();
+          }
+        });
+      } else {
+        setCurrentUser('guest');
+        loadData();
+      }
+    }
+
+    function copyAdminAuthLink() {
+      const devToken = localStorage.getItem('admin_device_token') || 'bbk8899';
+      const url = `${window.location.protocol}//${window.location.host}${window.location.pathname}?user=${ADMIN_USER}&token=${encodeURIComponent(devToken)}`;
+      copyToClipboard(url, `✅ 管理员专属新设备激活链接已复制！\n\n激活链接：\n${url}\n\n在您自己的新手机或电脑浏览器中打开此链接，该设备将自动永久绑定为管理员！切勿发给他人！`);
+    }
+
+    async function changeDeviceKeyPrompt() {
+      const oldKey = prompt('请输入当前的设备专属密钥：', localStorage.getItem('admin_device_token') || 'bbk8899');
+      if (!oldKey) return;
+      const newKey = prompt('请输入您想要设置的新设备密钥（如一段自定义密码）：');
+      if (!newKey || !newKey.trim()) return;
+
+      try {
+        const res = await fetch('/api/admin/device_key/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ old_key: oldKey.trim(), new_key: newKey.trim() })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          localStorage.setItem('admin_device_token', newKey.trim());
+          alert('✅ 设备密钥更新成功！当前手机已同步记录新密钥。');
+          checkAdminAuth();
+        } else {
+          alert('修改失败: ' + (data.detail || JSON.stringify(data)));
+        }
+      } catch(e) {
+        alert('修改异常: ' + e);
+      }
+    }
+
     function promptSwitchUser() {
       const cur = getCurrentUser();
-      const next = prompt(`【专属空间切换】\n当前空间：${cur}\n\n请输入要切换的用户名（输入 babycck 进入管理员空间，或输入您自己的名字）：`, cur);
+      const next = prompt(`【专属空间切换】\n当前空间：${isDeviceAuthorizedAdmin ? '管理员空间' : cur}\n\n请输入要切换的用户名：`, isDeviceAuthorizedAdmin ? '' : cur);
       if (next !== null && next.trim()) {
         const clean = setCurrentUser(next);
         loadData().then(() => {
@@ -1982,15 +2083,30 @@
       alert('配置已生效！当前默认模型：' + model);
     }
 
-    window.onload = () => {
-      // 1. 检测 URL 中的 ?user=xxx 或 ?space=xxx，若存在则自动锁定该空间
+    window.onload = async () => {
+      // 1. 检测 URL 中的专属设备通行证 token
       const urlParams = new URLSearchParams(window.location.search);
+      const tokenFromUrl = urlParams.get('token') || urlParams.get('key');
+      if (tokenFromUrl) {
+        localStorage.setItem('admin_device_token', tokenFromUrl.trim());
+        // 清除地址栏上的 token 参数，防止截图或他人看到
+        const cleanParams = new URLSearchParams(window.location.search);
+        cleanParams.delete('token');
+        cleanParams.delete('key');
+        const searchStr = cleanParams.toString() ? ('?' + cleanParams.toString()) : '';
+        window.history.replaceState({}, document.title, window.location.pathname + searchStr);
+      }
+
+      // 2. 检测并锁定用户空间
       const userFromUrl = urlParams.get('user') || urlParams.get('space');
       if (userFromUrl) {
         setCurrentUser(userFromUrl);
       } else {
         updateUserUI();
       }
+
+      // 3. 校验设备是否为已绑定的管理员设备
+      await checkAdminAuth();
 
       if (localStorage.getItem('base_url')) document.getElementById('api-base-url').value = localStorage.getItem('base_url');
       if (localStorage.getItem('api_key')) document.getElementById('api-key').value = localStorage.getItem('api_key');

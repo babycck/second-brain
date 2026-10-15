@@ -140,6 +140,7 @@ def load_system_config() -> Dict[str, Any]:
     if not os.path.exists(CONFIG_FILE):
         default_config = {
             "admin_user": ADMIN_USER,
+            "admin_device_key": "bbk8899",
             "allowed_spaces": [ADMIN_USER]
         }
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
@@ -152,9 +153,11 @@ def load_system_config() -> Dict[str, Any]:
                 cfg["allowed_spaces"] = [ADMIN_USER]
             if ADMIN_USER not in cfg["allowed_spaces"]:
                 cfg["allowed_spaces"].append(ADMIN_USER)
+            if "admin_device_key" not in cfg or not cfg["admin_device_key"]:
+                cfg["admin_device_key"] = "bbk8899"
             return cfg
     except Exception:
-        return {"admin_user": ADMIN_USER, "allowed_spaces": [ADMIN_USER]}
+        return {"admin_user": ADMIN_USER, "admin_device_key": "bbk8899", "allowed_spaces": [ADMIN_USER]}
 
 def save_system_config(cfg: Dict[str, Any]):
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -172,31 +175,42 @@ def extract_user_id(request: Request) -> str:
     return sanitize_user_id(user)
 
 def is_admin_user(request: Request) -> bool:
-    user = extract_user_id(request)
-    return user in [ADMIN_USER, "admin", "default"]
+    cfg = load_system_config()
+    device_token = (
+        request.headers.get("X-Admin-Device-Token")
+        or request.query_params.get("token")
+        or request.query_params.get("key")
+        or ""
+    ).strip()
+    expected_key = cfg.get("admin_device_key", "bbk8899").strip()
+    return bool(expected_key and device_token == expected_key)
 
 def check_space_access(user_id: str, request: Request):
     clean_user = sanitize_user_id(user_id)
 
-    # 1. 管理员专属主空间 babycck：仅当请求来源是管理员时放行
+    # 1. 尝试访问管理员主空间：必须具备管理员专属绑定的设备密钥
     if clean_user in [ADMIN_USER, "admin", "default"]:
         if not is_admin_user(request):
             raise HTTPException(
                 status_code=403,
-                detail=f"【无权访问】{ADMIN_USER} 为管理员最高主库，其他用户无权查看或修改！"
+                detail="【权限拒绝】未授权设备，禁止访问该私密空间！"
             )
         return True
 
-    # 2. 普通好友空间（如 tom, any, 小明）：必须由 babycck 授权开通，否则拒绝访问
+    # 2. 访问普通好友空间：必须由管理员预先授权开通
     cfg = load_system_config()
     allowed = cfg.get("allowed_spaces", [])
     target_file = get_user_db_path(clean_user)
     if clean_user not in allowed and not os.path.exists(target_file):
         raise HTTPException(
             status_code=403,
-            detail=f"【空间未授权】专属空间『{clean_user}』尚未由管理员 {ADMIN_USER} 开通！请联系 {ADMIN_USER} 开通您的私密专属空间。"
+            detail=f"【空间未开通】专属空间『{clean_user}』尚未开通！请联系管理员获取专属访问链接。"
         )
     return True
+
+class UpdateDeviceKeyRequest(BaseModel):
+    old_key: str
+    new_key: str
 
 class CreateSpaceRequest(BaseModel):
     space_name: str
@@ -472,10 +486,14 @@ def get_database(request: Request):
     check_space_access(user_id, request)
     return load_db(user_id)
 
+@app.get("/api/admin/check_auth")
+def check_admin_auth(request: Request):
+    return {"is_admin": is_admin_user(request)}
+
 @app.get("/api/admin/spaces")
 def list_spaces(request: Request):
     if not is_admin_user(request):
-        raise HTTPException(status_code=403, detail="【权限拒绝】只有管理员 babycck 才能查看空间管理列表")
+        raise HTTPException(status_code=403, detail="【设备未授权】无权查看管理列表")
     cfg = load_system_config()
     allowed = list(dict.fromkeys(cfg.get("allowed_spaces", []) + [ADMIN_USER]))
     spaces_info = []
@@ -500,7 +518,7 @@ def list_spaces(request: Request):
 @app.post("/api/admin/space/create")
 def create_space(req: CreateSpaceRequest, request: Request):
     if not is_admin_user(request):
-        raise HTTPException(status_code=403, detail="【权限拒绝】只有管理员 babycck 才能创建和分享好友专属空间！")
+        raise HTTPException(status_code=403, detail="【设备未授权】无权创建或分享空间！")
     space_name = sanitize_user_id(req.space_name)
     if not space_name or space_name in [ADMIN_USER, "admin", "default"]:
         raise HTTPException(status_code=400, detail="空间名称不合法或不可与管理员同名")
@@ -522,15 +540,29 @@ def create_space(req: CreateSpaceRequest, request: Request):
 @app.post("/api/admin/space/delete")
 def delete_space(req: DeleteSpaceRequest, request: Request):
     if not is_admin_user(request):
-        raise HTTPException(status_code=403, detail="【权限拒绝】只有管理员 babycck 才能删除好友空间！")
+        raise HTTPException(status_code=403, detail="【设备未授权】无权删除空间！")
     space_name = sanitize_user_id(req.space_name)
     if space_name in [ADMIN_USER, "admin", "default"]:
-        raise HTTPException(status_code=400, detail="不可删除 babycck 主管理员空间")
+        raise HTTPException(status_code=400, detail="不可删除主管理员空间")
 
     cfg = load_system_config()
     cfg["allowed_spaces"] = [s for s in cfg["allowed_spaces"] if s != space_name]
     save_system_config(cfg)
     return {"status": "ok", "deleted_space": space_name}
+
+@app.post("/api/admin/device_key/update")
+def update_device_key(req: UpdateDeviceKeyRequest, request: Request):
+    if not is_admin_user(request):
+        raise HTTPException(status_code=403, detail="【设备未授权】无权修改设备密钥")
+    cfg = load_system_config()
+    cur_key = cfg.get("admin_device_key", "bbk8899").strip()
+    if req.old_key.strip() != cur_key:
+        raise HTTPException(status_code=400, detail="旧设备密钥不正确，修改失败")
+    if not req.new_key.strip():
+        raise HTTPException(status_code=400, detail="新密钥不能为空")
+    cfg["admin_device_key"] = req.new_key.strip()
+    save_system_config(cfg)
+    return {"status": "ok", "message": "设备专属密钥修改成功！"}
 
 @app.post("/api/test_connection")
 async def test_connection(req: MatchQueryRequest):
