@@ -182,6 +182,10 @@ def is_admin_user(request: Request) -> bool:
         or request.query_params.get("key")
         or ""
     ).strip()
+    try:
+        device_token = urllib.parse.unquote(device_token)
+    except Exception:
+        pass
     expected_key = cfg.get("admin_device_key", "bbk8899").strip()
     return bool(expected_key and device_token == expected_key)
 

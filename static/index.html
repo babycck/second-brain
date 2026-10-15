@@ -639,6 +639,60 @@
   <script>
     const ADMIN_USER = 'babycck';
 
+    // 绑定 window 宿主上下文的原生 fetch，杜绝 Safari/WebKit 抛出 TypeError: Type error
+    const _nativeFetch = (window.fetch && window.fetch.bind(window)) || fetch.bind(window);
+
+    // 全局 fetch 拦截器：自动注入空间与设备通行证，处理非 ASCII 字符编码，403 时静默拦截保护
+    window.fetch = async function(input, init) {
+      init = init ? Object.assign({}, init) : {};
+      try {
+        let headers = init.headers;
+        if (!headers) {
+          headers = {};
+          init.headers = headers;
+        }
+
+        const urlStr = (typeof input === 'string') ? input : (input && input.url ? input.url : '');
+        const isLocalApi = urlStr.startsWith('/') || urlStr.startsWith(window.location.origin) || (!urlStr.startsWith('http://') && !urlStr.startsWith('https://'));
+
+        if (isLocalApi) {
+          const devToken = localStorage.getItem('admin_device_token') || '';
+          const userSpace = getCurrentUser();
+          const safeUser = encodeURIComponent(userSpace);
+
+          if (typeof Headers !== 'undefined' && headers instanceof Headers) {
+            headers.set('X-User-Space', safeUser);
+            if (devToken) headers.set('X-Admin-Device-Token', encodeURIComponent(devToken));
+          } else if (Array.isArray(headers)) {
+            headers.push(['X-User-Space', safeUser]);
+            if (devToken) headers.push(['X-Admin-Device-Token', encodeURIComponent(devToken)]);
+          } else if (typeof headers === 'object') {
+            headers['X-User-Space'] = safeUser;
+            if (devToken) headers['X-Admin-Device-Token'] = encodeURIComponent(devToken);
+          }
+        }
+      } catch (e) {
+        console.error("fetch hook error:", e);
+      }
+
+      const res = await _nativeFetch(input, init);
+
+      if (res && res.status === 403) {
+        try {
+          const clone = res.clone();
+          const errData = await clone.json();
+          if (errData && errData.detail) {
+            if (errData.detail.includes('未授权设备') || errData.detail.includes('私密空间')) {
+              promptAuthorizeDevice();
+            } else {
+              alert(errData.detail);
+            }
+          }
+        } catch(e) {}
+      }
+      return res;
+    };
+
     function sanitizeUserName(raw) {
       if (!raw) return ADMIN_USER;
       try {
@@ -681,9 +735,9 @@
 
     async function checkAdminAuth() {
       try {
-        const res = await _origFetch('/api/admin/check_auth', {
+        const res = await _nativeFetch('/api/admin/check_auth', {
           headers: {
-            'X-Admin-Device-Token': localStorage.getItem('admin_device_token') || ''
+            'X-Admin-Device-Token': encodeURIComponent(localStorage.getItem('admin_device_token') || '')
           }
         });
         if (res.ok) {
@@ -692,7 +746,9 @@
           updateUserUI();
           return isDeviceAuthorizedAdmin;
         }
-      } catch(e) {}
+      } catch(e) {
+        console.error("checkAdminAuth error:", e);
+      }
       isDeviceAuthorizedAdmin = false;
       updateUserUI();
       return false;
@@ -727,36 +783,6 @@
         if (keyDisplay) keyDisplay.innerText = localStorage.getItem('admin_device_token') || 'bbk8899';
       }
     }
-
-    // 全局 fetch 拦截器：自动注入空间与设备通行证，403 时静默拦截保护
-    const _origFetch = window.fetch;
-    window.fetch = async function(url, options = {}) {
-      options = options || {};
-      options.headers = options.headers || {};
-      const devToken = localStorage.getItem('admin_device_token') || '';
-      if (options.headers instanceof Headers) {
-        options.headers.set('X-User-Space', getCurrentUser());
-        if (devToken) options.headers.set('X-Admin-Device-Token', devToken);
-      } else if (typeof options.headers === 'object') {
-        options.headers['X-User-Space'] = getCurrentUser();
-        if (devToken) options.headers['X-Admin-Device-Token'] = devToken;
-      }
-      const res = await _origFetch(url, options);
-      if (res.status === 403) {
-        try {
-          const clone = res.clone();
-          const errData = await clone.json();
-          if (errData && errData.detail) {
-            if (errData.detail.includes('未授权设备') || errData.detail.includes('私密空间')) {
-              promptAuthorizeDevice();
-            } else {
-              alert(errData.detail);
-            }
-          }
-        } catch(e) {}
-      }
-      return res;
-    };
 
     function promptAuthorizeDevice() {
       const code = prompt('🔐 该私密空间受专属设备锁保护！\n如果您是管理员，请输入设备专属通行密钥以授权绑定当前手机：');
