@@ -8,3 +8,4 @@ dist/
 build/
 *.spec
 data/database_*.json
+data/system_config.json

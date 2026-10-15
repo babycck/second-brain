@@ -90,9 +90,8 @@
     <!-- 用户专属空间指示器与快捷切换（手机与电脑全端适配） -->
     <div class="flex items-center gap-2">
       <button onclick="promptSwitchUser()" type="button" class="flex items-center gap-1.5 bg-slate-900/90 hover:bg-slate-800 border border-slate-750 px-2.5 py-1 rounded-full text-xs text-slate-300 transition shadow-sm" title="点击切换用户名或载入专属空间">
-        <i class="fa-solid fa-circle-user text-cyan-400 text-xs"></i>
         <span class="text-slate-400 text-[10px] hidden sm:inline">空间:</span>
-        <span id="current-user-badge" class="font-bold text-white text-[11px] sm:text-xs">admin</span>
+        <span id="current-user-badge" class="font-bold text-white text-[11px] sm:text-xs">👑 babycck</span>
         <i class="fa-solid fa-right-left text-[9px] text-slate-400 ml-0.5"></i>
       </button>
     </div>
@@ -469,38 +468,81 @@
 
     <!-- 5. 设置 -->
     <section id="view-settings" class="hidden space-y-4">
-      <!-- 专属用户空间与数据隔离 -->
-      <div class="glass-card p-5 rounded-2xl max-w-lg mx-auto space-y-4">
-        <div>
-          <h2 class="text-sm font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-users-viewfinder text-indigo-400"></i> 用户空间与数据隔离
-          </h2>
-          <p class="text-[11px] text-slate-400 mt-1">每个用户名独享独立数据库，日记与资产互不干扰、绝对保密。</p>
-        </div>
-        <div class="space-y-3 text-xs">
+      <!-- 👑 babycck 最高管理控制台（仅 babycck 可见，其他人无权查看和分享） -->
+      <div id="admin-control-panel" class="glass-card p-5 rounded-2xl max-w-lg mx-auto space-y-4 border border-amber-500/40 shadow-xl shadow-amber-500/5">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
           <div>
-            <label class="block text-slate-400 mb-1 font-medium">当前登录用户名 / 空间码</label>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-crown text-amber-400"></i> babycck 最高管理控制台
+            </h2>
+            <p class="text-[11px] text-slate-400 mt-1">您是最高管理员。只有您可以为好友开通独立空间并生成专属分享代码。</p>
+          </div>
+          <span class="text-[10px] text-amber-300 bg-amber-950 border border-amber-700/80 px-2.5 py-0.5 rounded-full font-bold">超级管理员</span>
+        </div>
+
+        <div class="space-y-3.5 text-xs">
+          <!-- 切换空间 -->
+          <div>
+            <label class="block text-slate-400 mb-1 font-medium">当前空间：<span class="text-amber-400 font-bold">babycck（主库）</span></label>
             <div class="flex gap-2">
-              <input id="setting-user-input" type="text" placeholder="如: admin, tom, guest" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-cyan-500 font-mono">
-              <button onclick="switchUserByInput()" type="button" class="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg font-bold transition flex items-center gap-1.5 whitespace-nowrap shadow-md shadow-indigo-600/20">
-                <i class="fa-solid fa-arrow-right-to-bracket"></i> 切换载入
+              <input id="setting-user-input" type="text" placeholder="输入要切换的空间（如: babycck, tom, any, 小明）" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500 font-mono text-xs">
+              <button onclick="switchUserByInput()" type="button" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 px-3.5 py-2 rounded-lg font-bold transition flex items-center gap-1.5 whitespace-nowrap">
+                <i class="fa-solid fa-arrow-right-to-bracket text-xs"></i> 载入空间
               </button>
             </div>
-            <span class="text-[10px] text-slate-500 mt-1 block">提示：输入您的私有名（如 <code class="text-cyan-400 font-mono">admin</code>）载入您积累的全部资产；输入其他名字则载入对应独立空间。</span>
           </div>
 
+          <!-- 开通好友空间 -->
           <div class="pt-3 border-t border-slate-800/80 space-y-2">
-            <label class="block text-slate-400 font-medium">一键生成好友专属免密链接</label>
+            <label class="block text-slate-200 font-medium flex items-center gap-1.5">
+              <i class="fa-solid fa-user-plus text-amber-400"></i> 授权并开通好友专属私密空间
+            </label>
             <div class="flex gap-2">
-              <input id="friend-user-input" type="text" placeholder="输入好友代号，如: tom, alex, 小王" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-cyan-500 text-xs">
-              <button onclick="copyFriendLink()" type="button" class="bg-cyan-600 hover:bg-cyan-500 text-white px-4 py-2 rounded-lg font-bold transition flex items-center gap-1.5 whitespace-nowrap shadow-md shadow-cyan-600/20">
-                <i class="fa-solid fa-share-nodes"></i> 复制专属链接
+              <input id="friend-space-input" type="text" placeholder="输入好友代号（如 tom, any, 小明, 老王）" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-amber-500 text-xs">
+              <button onclick="createFriendSpace()" type="button" class="bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-slate-950 px-4 py-2 rounded-lg font-bold transition flex items-center gap-1.5 whitespace-nowrap shadow-md shadow-amber-600/20">
+                <i class="fa-solid fa-paper-plane text-xs"></i> 开通并复制链接
               </button>
             </div>
-            <p class="text-[11px] text-slate-400 leading-relaxed bg-slate-950 p-3 rounded-xl border border-slate-800/80">
-              💡 <span class="text-emerald-400 font-medium">保密机制</span>：好友通过链接或在任何手机/电脑浏览器打开时，系统会为其建立专属数据库，<span class="text-white font-bold">绝对看不到您的任何个人日记和资产</span>！
+            <p class="text-[10px] text-slate-400 leading-relaxed bg-slate-950/80 p-2.5 rounded-lg border border-slate-800/80">
+              💡 <span class="text-emerald-400 font-medium">防泄漏机制</span>：好友通过链接进入后，拥有完全独立的专属数据库，<span class="text-white font-bold">绝对看不到您的任何日记与资产</span>，且对方<span class="text-rose-400 font-bold">没有</span>创建与分享其他空间的权限！
             </p>
           </div>
+
+          <!-- 已授权空间管理列表 -->
+          <div class="pt-3 border-t border-slate-800/80 space-y-2">
+            <div class="flex items-center justify-between">
+              <label class="text-slate-300 font-medium">已授权空间列表</label>
+              <button onclick="fetchAdminSpaces()" type="button" class="text-[11px] text-cyan-400 hover:text-cyan-300">
+                <i class="fa-solid fa-rotate-right mr-1"></i>刷新
+              </button>
+            </div>
+            <div id="admin-spaces-list" class="space-y-1.5 max-h-48 overflow-y-auto">
+              <!-- 动态注入 -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 👤 普通好友专属面板（非 babycck 时显示，完全杜绝分享权限） -->
+      <div id="friend-user-panel" class="hidden glass-card p-5 rounded-2xl max-w-lg mx-auto space-y-3 border border-cyan-500/30">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+          <div>
+            <h2 class="text-sm font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-circle-user text-cyan-400"></i> 我的专属空间
+            </h2>
+            <p class="text-[11px] text-slate-400 mt-1">当前空间账号：<span id="cur-user-display" class="text-cyan-400 font-bold font-mono"></span></p>
+          </div>
+          <span class="text-[10px] text-cyan-400 bg-cyan-950 border border-cyan-800/80 px-2 py-0.5 rounded-full font-bold">独立私有库</span>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed bg-slate-950 p-3 rounded-xl border border-slate-800">
+          🔒 <span class="text-emerald-400 font-medium">数据物理隔离已生效</span>：您在此处保存的所有日记、随笔、资料模型与风暴记录均为独立私有数据，管理员与任何其他人均不可见。<br>
+          <span class="text-slate-500 text-[11px] mt-1 block">（注：好友账号仅拥有个人脑库使用权限，无开通与管理其他空间的权限）</span>
+        </p>
+        <div class="pt-1 flex items-center justify-between">
+          <span class="text-[11px] text-slate-500">如需切换空间：</span>
+          <button onclick="promptSwitchUser()" type="button" class="text-xs text-slate-400 hover:text-cyan-400 underline">
+            切换空间账号
+          </button>
         </div>
       </div>
 
@@ -576,13 +618,17 @@
   </div>
 
   <script>
+    const ADMIN_USER = 'babycck';
+
     function getCurrentUser() {
-      const u = localStorage.getItem('user_space') || 'admin';
-      return u.trim() || 'admin';
+      let u = localStorage.getItem('user_space') || ADMIN_USER;
+      if (u === 'admin' || u === 'default') u = ADMIN_USER;
+      return u.trim() || ADMIN_USER;
     }
 
     function setCurrentUser(u) {
-      const clean = (u || 'admin').replace(/[^\w\u4e00-\u9fa5_-]/g, '').trim() || 'admin';
+      let clean = (u || ADMIN_USER).replace(/[^\w\u4e00-\u9fa5_-]/g, '').trim() || ADMIN_USER;
+      if (clean === 'admin' || clean === 'default') clean = ADMIN_USER;
       localStorage.setItem('user_space', clean);
       updateUserUI();
       return clean;
@@ -590,10 +636,26 @@
 
     function updateUserUI() {
       const u = getCurrentUser();
+      const isAdmin = (u === ADMIN_USER);
+
       const badge = document.getElementById('current-user-badge');
-      if (badge) badge.innerText = u;
+      if (badge) {
+        badge.innerHTML = isAdmin ? `<span class="text-amber-400 font-bold">👑 ${u}</span>` : `<span class="text-cyan-400 font-medium">👤 ${u}</span>`;
+      }
+
+      const adminPanel = document.getElementById('admin-control-panel');
+      const friendPanel = document.getElementById('friend-user-panel');
+      if (adminPanel) adminPanel.classList.toggle('hidden', !isAdmin);
+      if (friendPanel) friendPanel.classList.toggle('hidden', isAdmin);
+
       const input = document.getElementById('setting-user-input');
       if (input) input.value = u;
+      const curUserSpan = document.getElementById('cur-user-display');
+      if (curUserSpan) curUserSpan.innerText = u;
+
+      if (isAdmin) {
+        fetchAdminSpaces();
+      }
     }
 
     // 全局 fetch 拦截器：所有发往后端的请求自动附加 X-User-Space 请求头
@@ -606,17 +668,31 @@
       } else if (typeof options.headers === 'object') {
         options.headers['X-User-Space'] = getCurrentUser();
       }
-      return _origFetch(url, options);
+      const res = await _origFetch(url, options);
+      if (res.status === 403) {
+        try {
+          const clone = res.clone();
+          const errData = await clone.json();
+          if (errData && errData.detail) {
+            alert(errData.detail);
+            if (errData.detail.includes('尚未由管理员')) {
+              setCurrentUser(ADMIN_USER);
+              loadData();
+            }
+          }
+        } catch(e) {}
+      }
+      return res;
     };
 
     function promptSwitchUser() {
       const cur = getCurrentUser();
-      const next = prompt(`【多用户专属空间切换】\n当前用户名：${cur}\n\n请输入要载入的用户名（例如：admin 载入主库；或输入好友专属名字）：`, cur);
+      const next = prompt(`【专属空间切换】\n当前空间：${cur}\n\n请输入要切换的用户名（输入 babycck 进入管理员空间，或输入您自己的名字）：`, cur);
       if (next !== null && next.trim()) {
         const clean = setCurrentUser(next);
         loadData().then(() => {
           renderAssets();
-          alert(`已成功切换至【${clean}】的独立空间！\n当前所有日记与资产均已对应至该用户。`);
+          alert(`已切换至【${clean}】空间！`);
         });
       }
     }
@@ -631,29 +707,113 @@
       const clean = setCurrentUser(val);
       loadData().then(() => {
         renderAssets();
-        alert(`已成功切换至【${clean}】的独立空间！\n当前所有日记与资产均已对应至该用户。`);
+        alert(`已切换至【${clean}】空间！`);
       });
     }
 
-    function copyFriendLink() {
-      const input = document.getElementById('friend-user-input');
-      let friend = (input ? input.value : '').trim();
-      if (!friend) {
-        friend = prompt('请输入好友代号（如 tom, alex, 小王）：', 'guest');
-        if (!friend) return;
-        if (input) input.value = friend;
+    async function createFriendSpace() {
+      const input = document.getElementById('friend-space-input');
+      const name = (input ? input.value : '').trim();
+      if (!name) {
+        alert('请输入好友代号（支持英文、数字或中文，如 tom, any, 小明, 老王）');
+        return;
       }
-      const cleanFriend = friend.replace(/[^\w\u4e00-\u9fa5_-]/g, '').trim() || 'guest';
-      const url = `${window.location.protocol}//${window.location.host}${window.location.pathname}?user=${encodeURIComponent(cleanFriend)}`;
-      
+      try {
+        const res = await fetch('/api/admin/space/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ space_name: name })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          if (input) input.value = '';
+          const url = `${window.location.protocol}//${window.location.host}${window.location.pathname}?user=${encodeURIComponent(data.space_name)}`;
+          copyToClipboard(url, `✅ 成功为【${data.space_name}】开通专属私密空间并复制专属链接！\n\n专属链接：\n${url}\n\n发送给好友即可！好友拥有完全独立的个人数据，绝对看不到您的任何日记，也无法创建或分享其他空间。`);
+          fetchAdminSpaces();
+        } else {
+          alert('开通失败: ' + (data.detail || JSON.stringify(data)));
+        }
+      } catch (e) {
+        alert('开通异常: ' + e);
+      }
+    }
+
+    async function fetchAdminSpaces() {
+      if (getCurrentUser() !== ADMIN_USER) return;
+      try {
+        const res = await fetch('/api/admin/spaces');
+        if (res.ok) {
+          const data = await res.json();
+          renderSpacesList(data.spaces || []);
+        }
+      } catch(e) {}
+    }
+
+    function renderSpacesList(spaces) {
+      const container = document.getElementById('admin-spaces-list');
+      if (!container) return;
+      if (spaces.length === 0) {
+        container.innerHTML = '<div class="text-slate-500 text-xs py-2">暂无已授权的好友空间</div>';
+        return;
+      }
+      container.innerHTML = spaces.map(sp => {
+        const isMaster = sp.name === ADMIN_USER;
+        const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?user=${encodeURIComponent(sp.name)}`;
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
+            <div class="flex items-center gap-2">
+              <span class="${isMaster ? 'text-amber-400 font-bold' : 'text-slate-200 font-medium'} flex items-center gap-1">
+                ${isMaster ? '<i class="fa-solid fa-crown text-amber-400"></i>' : '<i class="fa-solid fa-circle-user text-cyan-400"></i>'}
+                ${sp.name}
+              </span>
+              <span class="text-[10px] text-slate-500 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                ${isMaster ? '最高管理员主库' : '好友独立空间'} · ${sp.asset_count} 条资产
+              </span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              ${!isMaster ? `
+                <button onclick="copyToClipboard('${link}', '已复制好友【${sp.name}】的专属链接！')" class="px-2.5 py-1 bg-cyan-950 text-cyan-400 hover:bg-cyan-900 border border-cyan-800/60 rounded text-[11px] transition">
+                  <i class="fa-solid fa-link mr-1"></i> 复制链接
+                </button>
+                <button onclick="deleteFriendSpace('${sp.name}')" class="px-2 py-1 bg-rose-950 text-rose-400 hover:bg-rose-900 border border-rose-800/60 rounded text-[11px] transition" title="删除该好友空间">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              ` : `
+                <span class="text-[10px] text-amber-400/90 font-medium px-2 py-0.5 rounded">👑 主权所有</span>
+              `}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function deleteFriendSpace(name) {
+      if (!confirm(`确定要删除好友空间【${name}】的授权吗？`)) return;
+      try {
+        const res = await fetch('/api/admin/space/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ space_name: name })
+        });
+        if (res.ok) {
+          fetchAdminSpaces();
+        } else {
+          alert('删除失败');
+        }
+      } catch(e) {
+        alert('删除异常: ' + e);
+      }
+    }
+
+    function copyToClipboard(text, msg) {
       if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(() => {
-          alert(`✅ 好友专属免密链接已复制到剪贴板！\n\n专属链接：\n${url}\n\n发送给好友后，对方打开即可使用自己的独立空间，绝对看不到您的任何日记与资产！`);
+        navigator.clipboard.writeText(text).then(() => {
+          alert(msg);
         }).catch(() => {
-          prompt('请手动长按复制下方好友专属链接：', url);
+          prompt('请手动长按复制下方链接：', text);
         });
       } else {
-        prompt('请手动长按复制下方好友专属链接：', url);
+        prompt('请手动长按复制下方链接：', text);
       }
     }
 

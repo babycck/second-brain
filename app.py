@@ -28,11 +28,13 @@ STATIC_DIR = os.path.join(BUNDLE_DIR, "static")
 if not os.path.exists(STATIC_DIR):
     STATIC_DIR = os.path.join(BASE_DIR, "static")
 
+ADMIN_USER = "babycck"
+
 def sanitize_user_id(user_id: Optional[str]) -> str:
     if not user_id:
-        return "admin"
+        return ADMIN_USER
     clean = re.sub(r'[^\w\u4e00-\u9fa5_-]', '', str(user_id)).strip()
-    return clean if clean else "admin"
+    return clean if clean else ADMIN_USER
 
 def get_initial_template_for_new_user() -> Dict[str, Any]:
     return {
@@ -69,29 +71,32 @@ def get_initial_template_for_new_user() -> Dict[str, Any]:
 def get_user_db_path(user_id: str) -> str:
     os.makedirs(DATA_DIR, exist_ok=True)
     clean_user = sanitize_user_id(user_id)
+    if clean_user in [ADMIN_USER, "admin", "default"]:
+        return os.path.join(DATA_DIR, f"database_{ADMIN_USER}.json")
     return os.path.join(DATA_DIR, f"database_{clean_user}.json")
 
-def load_db(user_id: str = "admin") -> Dict[str, Any]:
+def load_db(user_id: str = ADMIN_USER) -> Dict[str, Any]:
     os.makedirs(DATA_DIR, exist_ok=True)
     clean_user = sanitize_user_id(user_id)
     target_file = get_user_db_path(clean_user)
 
-    # 兼容历史数据：若访问 admin 或 default，且专属库尚不存在，而旧 database.json 存在，则自动继承原有全部 78 条资产与日记
-    if clean_user in ["admin", "default"] and not os.path.exists(target_file):
-        old_file = os.path.join(DATA_DIR, "database.json")
-        if os.path.exists(old_file):
-            try:
-                with open(old_file, "r", encoding="utf-8") as f:
-                    old_data = json.load(f)
-                with open(target_file, "w", encoding="utf-8") as f:
-                    json.dump(old_data, f, ensure_ascii=False, indent=2)
-                return old_data
-            except Exception as e:
-                print(f"[Migration Error] {e}")
+    # 兼容历史数据：若访问 babycck 或旧的 admin/default，且专属库尚不存在，优先从旧数据库文件迁移原有全部资产与日记
+    if clean_user in [ADMIN_USER, "admin", "default"] and not os.path.exists(target_file):
+        for candidate in ["database_admin.json", "database.json", "database_default.json"]:
+            old_file = os.path.join(DATA_DIR, candidate)
+            if os.path.exists(old_file):
+                try:
+                    with open(old_file, "r", encoding="utf-8") as f:
+                        old_data = json.load(f)
+                    with open(target_file, "w", encoding="utf-8") as f:
+                        json.dump(old_data, f, ensure_ascii=False, indent=2)
+                    return old_data
+                except Exception as e:
+                    print(f"[Migration Error] {e}")
 
     # 若该用户库不存在，创建新库
     if not os.path.exists(target_file):
-        if clean_user in ["admin", "default"]:
+        if clean_user in [ADMIN_USER, "admin", "default"]:
             initial_data = {"assets": []}
         else:
             initial_data = get_initial_template_for_new_user()
@@ -105,12 +110,40 @@ def load_db(user_id: str = "admin") -> Dict[str, Any]:
     except Exception:
         return {"assets": []}
 
-def save_db(data: Dict[str, Any], user_id: str = "admin"):
+def save_db(data: Dict[str, Any], user_id: str = ADMIN_USER):
     os.makedirs(DATA_DIR, exist_ok=True)
     clean_user = sanitize_user_id(user_id)
     target_file = get_user_db_path(clean_user)
     with open(target_file, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+
+CONFIG_FILE = os.path.join(DATA_DIR, "system_config.json")
+
+def load_system_config() -> Dict[str, Any]:
+    os.makedirs(DATA_DIR, exist_ok=True)
+    if not os.path.exists(CONFIG_FILE):
+        default_config = {
+            "admin_user": ADMIN_USER,
+            "allowed_spaces": [ADMIN_USER]
+        }
+        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump(default_config, f, ensure_ascii=False, indent=2)
+        return default_config
+    try:
+        with open(CONFIG_FILE, "r", encoding="utf-8") as f:
+            cfg = json.load(f)
+            if "allowed_spaces" not in cfg or not isinstance(cfg["allowed_spaces"], list):
+                cfg["allowed_spaces"] = [ADMIN_USER]
+            if ADMIN_USER not in cfg["allowed_spaces"]:
+                cfg["allowed_spaces"].append(ADMIN_USER)
+            return cfg
+    except Exception:
+        return {"admin_user": ADMIN_USER, "allowed_spaces": [ADMIN_USER]}
+
+def save_system_config(cfg: Dict[str, Any]):
+    os.makedirs(DATA_DIR, exist_ok=True)
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, ensure_ascii=False, indent=2)
 
 def extract_user_id(request: Request) -> str:
     user = (
@@ -118,9 +151,49 @@ def extract_user_id(request: Request) -> str:
         or request.headers.get("X-Space-Id")
         or request.query_params.get("user")
         or request.query_params.get("space")
-        or "admin"
+        or ADMIN_USER
     )
     return sanitize_user_id(user)
+
+def is_admin_user(request: Request) -> bool:
+    user = extract_user_id(request)
+    return user in [ADMIN_USER, "admin", "default"]
+
+def check_space_access(user_id: str, request: Request):
+    clean_user = sanitize_user_id(user_id)
+
+    # 1. 管理员专属主空间 babycck：仅当请求来源是管理员时放行
+    if clean_user in [ADMIN_USER, "admin", "default"]:
+        if not is_admin_user(request):
+            raise HTTPException(
+                status_code=403,
+                detail=f"【无权访问】{ADMIN_USER} 为管理员最高主库，其他用户无权查看或修改！"
+            )
+        return True
+
+    # 2. 普通好友空间（如 tom, any, 小明）：必须由 babycck 授权开通，否则拒绝访问
+    cfg = load_system_config()
+    allowed = cfg.get("allowed_spaces", [])
+    target_file = get_user_db_path(clean_user)
+    if clean_user not in allowed and not os.path.exists(target_file):
+        raise HTTPException(
+            status_code=403,
+            detail=f"【空间未授权】专属空间『{clean_user}』尚未由管理员 {ADMIN_USER} 开通！请联系 {ADMIN_USER} 开通您的私密专属空间。"
+        )
+    return True
+
+class CreateSpaceRequest(BaseModel):
+    space_name: str
+
+class DeleteSpaceRequest(BaseModel):
+    space_name: str
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+
+class VerifyAdminRequest(BaseModel):
+    password: str
 
 class MatchQueryRequest(BaseModel):
     query: str
@@ -380,7 +453,68 @@ async def chrome_devtools():
 @app.get("/api/db")
 def get_database(request: Request):
     user_id = extract_user_id(request)
+    check_space_access(user_id, request)
     return load_db(user_id)
+
+@app.get("/api/admin/spaces")
+def list_spaces(request: Request):
+    if not is_admin_user(request):
+        raise HTTPException(status_code=403, detail="【权限拒绝】只有管理员 babycck 才能查看空间管理列表")
+    cfg = load_system_config()
+    allowed = list(dict.fromkeys(cfg.get("allowed_spaces", []) + [ADMIN_USER]))
+    spaces_info = []
+    for sp in allowed:
+        sp_path = get_user_db_path(sp)
+        count = 0
+        if os.path.exists(sp_path):
+            try:
+                with open(sp_path, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    count = len(data.get("assets", []))
+            except Exception:
+                pass
+        spaces_info.append({
+            "name": sp,
+            "is_admin": (sp == ADMIN_USER or sp in ["admin", "default"]),
+            "asset_count": count,
+            "created": os.path.exists(sp_path)
+        })
+    return {"spaces": spaces_info}
+
+@app.post("/api/admin/space/create")
+def create_space(req: CreateSpaceRequest, request: Request):
+    if not is_admin_user(request):
+        raise HTTPException(status_code=403, detail="【权限拒绝】只有管理员 babycck 才能创建和分享好友专属空间！")
+    space_name = sanitize_user_id(req.space_name)
+    if not space_name or space_name in [ADMIN_USER, "admin", "default"]:
+        raise HTTPException(status_code=400, detail="空间名称不合法或不可与管理员同名")
+
+    cfg = load_system_config()
+    if space_name not in cfg["allowed_spaces"]:
+        cfg["allowed_spaces"].append(space_name)
+        save_system_config(cfg)
+
+    # 预初始化该好友的专属独立数据库文件
+    target_file = get_user_db_path(space_name)
+    if not os.path.exists(target_file):
+        init_data = get_initial_template_for_new_user()
+        with open(target_file, "w", encoding="utf-8") as f:
+            json.dump(init_data, f, ensure_ascii=False, indent=2)
+
+    return {"status": "ok", "space_name": space_name}
+
+@app.post("/api/admin/space/delete")
+def delete_space(req: DeleteSpaceRequest, request: Request):
+    if not is_admin_user(request):
+        raise HTTPException(status_code=403, detail="【权限拒绝】只有管理员 babycck 才能删除好友空间！")
+    space_name = sanitize_user_id(req.space_name)
+    if space_name in [ADMIN_USER, "admin", "default"]:
+        raise HTTPException(status_code=400, detail="不可删除 babycck 主管理员空间")
+
+    cfg = load_system_config()
+    cfg["allowed_spaces"] = [s for s in cfg["allowed_spaces"] if s != space_name]
+    save_system_config(cfg)
+    return {"status": "ok", "deleted_space": space_name}
 
 @app.post("/api/test_connection")
 async def test_connection(req: MatchQueryRequest):
@@ -631,6 +765,7 @@ async def analyze_core(req: UniversalAnalyzeRequest):
 @app.post("/api/asset/save")
 def save_asset(req: SaveAssetRequest, request: Request):
     user_id = extract_user_id(request)
+    check_space_access(user_id, request)
     db = load_db(user_id)
     new_asset = {
         "id": f"asset-{int(time.time()*1000)}",
@@ -652,6 +787,7 @@ def save_asset(req: SaveAssetRequest, request: Request):
 @app.post("/api/asset/delete")
 def delete_asset(req: DeleteAssetRequest, request: Request):
     user_id = extract_user_id(request)
+    check_space_access(user_id, request)
     db = load_db(user_id)
     original_len = len(db.get("assets", []))
     db["assets"] = [a for a in db.get("assets", []) if a.get("id") != req.id]
@@ -725,6 +861,7 @@ async def run_brainstorm(req: BrainstormRequest):
 @app.post("/api/gacha")
 async def roll_gacha(req: GachaRequest, request: Request):
     user_id = extract_user_id(request)
+    check_space_access(user_id, request)
     db = load_db(user_id)
     assets = db.get("assets", [])
     
