@@ -4,6 +4,7 @@ import json
 import random
 import time
 import re
+import urllib.parse
 import webbrowser
 from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, Request, HTTPException, Response
@@ -33,7 +34,22 @@ ADMIN_USER = "babycck"
 def sanitize_user_id(user_id: Optional[str]) -> str:
     if not user_id:
         return ADMIN_USER
-    clean = re.sub(r'[^\w\u4e00-\u9fa5_-]', '', str(user_id)).strip()
+    raw = str(user_id).strip()
+    try:
+        raw = urllib.parse.unquote(raw)
+    except Exception:
+        pass
+    # 剥离 QQ / 微信拦截跳转页带入的冗余文字
+    raw = re.sub(r'(申请恢复访问|客服指引|查看规则|非官方页面|已停止访问).*$', '', raw).strip()
+    # 识别 QQ 复制剥离了 % 的 hex 编码 (如 E998BFE696AFE58DA1 -> 阿斯卡)
+    if re.match(r'^[0-9A-Fa-f]{6,}$', raw) and len(raw) % 2 == 0:
+        try:
+            decoded = bytes.fromhex(raw).decode('utf-8')
+            if decoded:
+                raw = decoded
+        except Exception:
+            pass
+    clean = re.sub(r'[^\w\u4e00-\u9fa5_-]', '', raw).strip()
     return clean if clean else ADMIN_USER
 
 def get_initial_template_for_new_user() -> Dict[str, Any]:

@@ -620,15 +620,39 @@
   <script>
     const ADMIN_USER = 'babycck';
 
+    function sanitizeUserName(raw) {
+      if (!raw) return ADMIN_USER;
+      try {
+        raw = decodeURIComponent(raw);
+      } catch(e) {}
+      // 1. 剥离 QQ / 微信拦截跳转页带入的冗余文字 (如: 申请恢复访问客服指引查看规则)
+      raw = raw.replace(/(申请恢复访问|客服指引|查看规则|非官方页面|已停止访问).*$/g, '').trim();
+      // 2. 识别 QQ 复制剥离了 % 的 hex utf-8 字符串 (例如 E998BFE696AFE58DA1 -> 阿斯卡)
+      if (/^[0-9A-Fa-f]{6,}$/.test(raw) && raw.length % 2 === 0) {
+        try {
+          const bytes = [];
+          for (let i = 0; i < raw.length; i += 2) {
+            bytes.push(parseInt(raw.substr(i, 2), 16));
+          }
+          const decoded = new TextDecoder('utf-8').decode(new Uint8Array(bytes));
+          if (decoded && /^[\u4e00-\u9fa5\w_-]+$/.test(decoded)) {
+            raw = decoded;
+          }
+        } catch(e) {}
+      }
+      // 3. 移除非法符号
+      raw = raw.replace(/[^\w\u4e00-\u9fa5_-]/g, '').trim();
+      if (!raw || raw === 'admin' || raw === 'default') return ADMIN_USER;
+      return raw;
+    }
+
     function getCurrentUser() {
       let u = localStorage.getItem('user_space') || ADMIN_USER;
-      if (u === 'admin' || u === 'default') u = ADMIN_USER;
-      return u.trim() || ADMIN_USER;
+      return sanitizeUserName(u);
     }
 
     function setCurrentUser(u) {
-      let clean = (u || ADMIN_USER).replace(/[^\w\u4e00-\u9fa5_-]/g, '').trim() || ADMIN_USER;
-      if (clean === 'admin' || clean === 'default') clean = ADMIN_USER;
+      let clean = sanitizeUserName(u);
       localStorage.setItem('user_space', clean);
       updateUserUI();
       return clean;
@@ -727,7 +751,7 @@
         const data = await res.json();
         if (res.ok) {
           if (input) input.value = '';
-          const url = `${window.location.protocol}//${window.location.host}${window.location.pathname}?user=${encodeURIComponent(data.space_name)}`;
+          const url = `${window.location.protocol}//${window.location.host}${window.location.pathname}?user=${data.space_name}`;
           copyToClipboard(url, `✅ 成功为【${data.space_name}】开通专属私密空间并复制专属链接！\n\n专属链接：\n${url}\n\n发送给好友即可！好友拥有完全独立的个人数据，绝对看不到您的任何日记，也无法创建或分享其他空间。`);
           fetchAdminSpaces();
         } else {
@@ -758,7 +782,7 @@
       }
       container.innerHTML = spaces.map(sp => {
         const isMaster = sp.name === ADMIN_USER;
-        const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?user=${encodeURIComponent(sp.name)}`;
+        const link = `${window.location.protocol}//${window.location.host}${window.location.pathname}?user=${sp.name}`;
         return `
           <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs">
             <div class="flex items-center gap-2">
