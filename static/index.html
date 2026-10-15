@@ -52,14 +52,21 @@
         font-size: 16px !important; /* 防止 iOS Safari 聚焦输入框时强行缩放页面 */
       }
     }
+    .bs-chat-bottom-bar {
+      position: fixed;
+      bottom: 0 !important;
+      left: 0;
+      right: 0;
+      z-index: 40;
+    }
     @media (max-width: 639px) {
       .bs-chat-bottom-bar {
-        bottom: calc(52px + max(env(safe-area-inset-bottom, 0px), 8px)) !important;
+        padding-bottom: max(env(safe-area-inset-bottom), 10px) !important;
       }
     }
     @media (min-width: 640px) {
       .bs-chat-bottom-bar {
-        bottom: 0 !important;
+        padding-bottom: 0.75rem !important;
       }
     }
   </style>
@@ -107,7 +114,26 @@
     </div>
   </header>
 
-  <main class="flex-1 max-w-5xl w-full mx-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 pb-24 sm:pb-8">
+  <!-- 移动端顶部吸顶微型导航栏（保证在专家复盘聊天无底栏时，随时1秒触达其他模块） -->
+  <div id="mobile-top-tabs" class="sm:hidden bg-slate-950/95 backdrop-blur-md border-b border-slate-800/80 px-2 py-1.5 flex items-center justify-between text-xs sticky top-[57px] z-30 shadow-md">
+    <button onclick="switchTab('brainstorm')" id="mtab-brainstorm" class="mtab-btn px-2.5 py-1 rounded-lg text-amber-400 bg-amber-950/70 border border-amber-700/60 font-bold whitespace-nowrap text-[11px] transition">
+      <i class="fa-solid fa-comments mr-1"></i>复盘圆桌
+    </button>
+    <button onclick="switchTab('assets')" id="mtab-assets" class="mtab-btn px-2.5 py-1 rounded-lg text-slate-400 border border-transparent whitespace-nowrap text-[11px] transition">
+      <i class="fa-solid fa-layer-group mr-1"></i>浏览积累
+    </button>
+    <button onclick="switchTab('home')" id="mtab-home" class="mtab-btn px-2.5 py-1 rounded-lg text-slate-400 border border-transparent whitespace-nowrap text-[11px] transition">
+      <i class="fa-solid fa-pen-to-square mr-1"></i>万能捕获
+    </button>
+    <button onclick="switchTab('gacha')" id="mtab-gacha" class="mtab-btn px-2.5 py-1 rounded-lg text-slate-400 border border-transparent whitespace-nowrap text-[11px] transition">
+      <i class="fa-solid fa-dice mr-1"></i>灵感炼金
+    </button>
+    <button onclick="switchTab('settings')" id="mtab-settings" class="mtab-btn px-2.5 py-1 rounded-lg text-slate-400 border border-transparent whitespace-nowrap text-[11px] transition">
+      <i class="fa-solid fa-gear mr-1"></i>设置
+    </button>
+  </div>
+
+  <main class="flex-1 max-w-5xl w-full mx-auto p-3.5 sm:p-6 space-y-4 sm:space-y-6 pb-20 sm:pb-8">
 
     <!-- 3. 万能捕获：三模式切换 + 锁定作品专属仪表盘 + 单项维度原子化爆破 -->
     <section id="view-home" class="hidden space-y-4 sm:space-y-6">
@@ -370,11 +396,28 @@
     </section>
 
     <!-- 1. AI 专家圆桌复盘 · 灵感对话流（首页核心） -->
-    <section id="view-brainstorm" class="space-y-4">
+    <section id="view-brainstorm" class="space-y-3">
+      <!-- 顶部常驻：已锁定全案状态指示条（锁定后常驻顶部，全局静默） -->
+      <div id="bs-locked-work-banner" class="hidden bg-gradient-to-r from-emerald-950/90 via-slate-900 to-indigo-950/90 border border-emerald-500/50 rounded-2xl p-2.5 sm:p-3 px-3.5 flex items-center justify-between text-xs text-emerald-300 shadow-md">
+        <div class="flex items-center gap-2">
+          <span class="text-base">🔒</span>
+          <div>
+            <div class="text-white font-bold flex items-center gap-1.5">
+              <span>已锁定核心全案：</span>
+              <span id="bs-locked-work-name" class="text-emerald-400 font-extrabold underline">《作品名》</span>
+            </div>
+            <div class="text-[10px] text-slate-400 mt-0.5">五大席位正围绕该作品全案手法、逻辑与博弈深度深挖</div>
+          </div>
+        </div>
+        <button onclick="unlockCurrentWork()" type="button" class="text-xs bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-rose-400 px-2.5 py-1 rounded-lg transition flex items-center gap-1 shadow-sm">
+          <i class="fa-solid fa-unlock text-[10px]"></i> 解锁全案
+        </button>
+      </div>
+
       <!-- 对话流互动容器 -->
       <div class="space-y-4">
         <!-- 历史讨论气泡与专家卡片流容器 -->
-        <div id="brainstorm-chat-feed" class="space-y-4 pb-44 sm:pb-24">
+        <div id="brainstorm-chat-feed" class="space-y-4 pb-32 sm:pb-28">
           <!-- 默认欢迎引导卡 -->
           <div class="glass-card p-3.5 sm:p-4 rounded-2xl border border-slate-800 space-y-2 shadow-sm">
             <div class="flex items-center justify-between flex-wrap gap-2">
@@ -391,9 +434,9 @@
           </div>
         </div>
 
-        <!-- 固定最底部的超简一体化输入栏（彻底告别框套框，精准吸附在移动端菜单正上方） -->
-        <div class="bs-chat-bottom-bar fixed left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/80 px-3 py-2 sm:py-3 shadow-2xl">
-          <div class="max-w-5xl mx-auto space-y-1.5">
+        <!-- 微信同款一体化输入栏（固定贴合屏幕最底，随键盘升降，零抖动） -->
+        <div class="bs-chat-bottom-bar bg-[#141824]/95 sm:bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/90 px-3 py-2 shadow-2xl">
+          <div class="max-w-4xl mx-auto space-y-1.5">
             <!-- 极简引用反驳指示条 -->
             <div id="bs-quote-badge" class="hidden flex items-center justify-between bg-amber-950/70 border border-amber-600/60 rounded-xl px-3 py-1 text-xs text-amber-300">
               <div class="flex items-center gap-1.5 truncate">
@@ -413,19 +456,22 @@
               <button onclick="removeBrainstormFile()" type="button" class="text-slate-400 hover:text-rose-400 text-sm ml-2">&times;</button>
             </div>
 
-            <!-- 真正的一体化单框（左侧📎 + 中间无缝输入区 + 右侧发送） -->
-            <div class="flex items-center gap-2 bg-slate-900 border border-slate-700/80 rounded-2xl px-2.5 py-1.5 focus-within:border-amber-500 transition shadow-inner">
+            <!-- 微信同款底栏行：左侧附件圆按钮 + 中间平滑自适应输入框 + 右侧微信绿/琥珀发送按钮 -->
+            <div class="flex items-end gap-2">
               <input type="file" id="bs-file-input" accept=".txt,.md,.text,.json,.doc,.docx" class="hidden" onchange="handleBrainstormFile(event)">
-              <button onclick="document.getElementById('bs-file-input').click()" type="button" class="text-slate-400 hover:text-cyan-400 p-1.5 transition shrink-0" title="上传剧本杀复盘文档/TXT">
+              <button onclick="document.getElementById('bs-file-input').click()" type="button" class="w-9 h-9 rounded-full bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-400 hover:text-cyan-400 flex items-center justify-center transition shrink-0 active:scale-95 mb-0.5" title="上传复盘材料/文档">
                 <i class="fa-solid fa-paperclip text-sm"></i>
               </button>
 
-              <textarea id="brainstorm-chat-input" rows="1"
-                        placeholder="聊聊你想复盘的剧本杀、综艺、电影，或提出反驳...（Enter 发送）"
-                        onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendBrainstormChat(); }"
-                        class="flex-1 bg-transparent text-white text-xs placeholder:text-slate-500 focus:outline-none resize-none py-1 max-h-28 leading-relaxed"></textarea>
+              <div class="flex-1 bg-slate-900/90 border border-slate-700/80 rounded-2xl px-3 py-1.5 focus-within:border-emerald-500/80 transition flex items-center">
+                <textarea id="brainstorm-chat-input" rows="1"
+                          placeholder="聊聊你想复盘的剧本杀、综艺、名片或直接反驳..."
+                          oninput="this.style.height = 'auto'; this.style.height = Math.min(this.scrollHeight, 120) + 'px';"
+                          onkeydown="if(event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); sendBrainstormChat(); }"
+                          class="w-full bg-transparent text-white text-[15px] sm:text-xs placeholder:text-slate-500 focus:outline-none resize-none py-1 max-h-28 leading-relaxed"></textarea>
+              </div>
 
-              <button onclick="sendBrainstormChat()" id="btn-bs-send" class="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 shadow-md">
+              <button onclick="sendBrainstormChat()" id="btn-bs-send" class="h-9 px-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-1 shrink-0 shadow-md active:scale-95 mb-0.5">
                 <span>发送</span>
                 <i class="fa-solid fa-arrow-up text-[11px]"></i>
               </button>
@@ -1042,17 +1088,46 @@
         bnavEl.classList.remove('text-slate-400', 'font-medium');
       }
 
+      // 同步高亮移动端顶部微型导航
+      document.querySelectorAll('.mtab-btn').forEach(b => {
+        b.classList.remove('text-amber-400', 'bg-amber-950/70', 'border-amber-700/60', 'font-bold');
+        b.classList.add('text-slate-400', 'border-transparent');
+      });
+      const mtabEl = document.getElementById('mtab-' + t);
+      if (mtabEl) {
+        mtabEl.classList.remove('text-slate-400', 'border-transparent');
+        mtabEl.classList.add('text-amber-400', 'bg-amber-950/70', 'border-amber-700/60', 'font-bold');
+      }
+
+      // 移动端微信聊天模式：在专家复盘聊天界面，隐藏移动端底部导航菜单，确保微信级输入栏紧密贴底且不弹跳；在其他页面展示底部菜单
+      const mobileBNav = document.getElementById('mobile-bottom-nav');
+      if (mobileBNav) {
+        if (t === 'brainstorm') {
+          mobileBNav.classList.add('hidden');
+        } else {
+          mobileBNav.classList.remove('hidden');
+        }
+      }
+
       ['home', 'assets', 'brainstorm', 'gacha', 'settings'].forEach(v => {
         document.getElementById('view-' + v).classList.add('hidden');
       });
       document.getElementById('view-' + t).classList.remove('hidden');
 
       if (t === 'assets') renderAssets();
-      if (t === 'brainstorm') populateBrainstormAssetOptions();
+      if (t === 'brainstorm') {
+        populateBrainstormAssetOptions();
+        // 专家复盘界面切换平滑定位
+        if (councilTurnsData && councilTurnsData.length > 0) {
+          scrollBrainstormToBottom(false);
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      } else {
+        // 平滑滚动回顶部
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
       if (t === 'gacha') populateGachaAnchorOptions();
-
-      // 平滑滚动回顶部
-      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function setInputMode(m) {
@@ -1611,6 +1686,32 @@
       if (input) input.value = '';
     }
 
+    function scrollBrainstormToBottom(smooth = true) {
+      setTimeout(() => {
+        window.scrollTo({
+          top: document.documentElement.scrollHeight || document.body.scrollHeight,
+          behavior: smooth ? 'smooth' : 'auto'
+        });
+      }, 60);
+    }
+
+    function setLockedWork(workName) {
+      currentLockedWork = workName;
+      const banner = document.getElementById('bs-locked-work-banner');
+      const nameEl = document.getElementById('bs-locked-work-name');
+      if (banner && nameEl) {
+        nameEl.innerText = `《${workName}》`;
+        banner.classList.remove('hidden');
+      }
+    }
+
+    function unlockCurrentWork() {
+      if (!confirm(`确定要解除对《${currentLockedWork}》的全案锁定吗？`)) return;
+      currentLockedWork = "";
+      const banner = document.getElementById('bs-locked-work-banner');
+      if (banner) banner.classList.add('hidden');
+    }
+
     function quoteExpertRebuttal(expertRole, cardTitle) {
       currentQuotedSeat = expertRole;
       const badge = document.getElementById('bs-quote-badge');
@@ -1623,7 +1724,7 @@
         const cleanTitle = (cardTitle || '这个观点').slice(0, 20);
         input.value = `@${expertRole}：针对【${cleanTitle}】，我认为这里有逻辑漏洞：`;
         input.focus();
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        scrollBrainstormToBottom(true);
       }
     }
 
@@ -1638,6 +1739,8 @@
       brainstormChatHistory = [];
       councilTurnsData = [];
       currentLockedWork = "";
+      const banner = document.getElementById('bs-locked-work-banner');
+      if (banner) banner.classList.add('hidden');
       cancelBrainstormQuote();
       removeBrainstormFile();
       const feed = document.getElementById('brainstorm-chat-feed');
@@ -1693,6 +1796,7 @@
 
       if (!overrideMessage && inputEl) {
         inputEl.value = '';
+        inputEl.style.height = 'auto';
       }
       cancelBrainstormQuote();
 
@@ -1708,7 +1812,7 @@
         </div>
       `;
       feed.appendChild(loadingBubble);
-      loadingBubble.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      scrollBrainstormToBottom(true);
 
         // 3. 构建发送请求
       try {
@@ -1744,9 +1848,9 @@
         const turnBox = document.createElement('div');
         turnBox.className = 'space-y-3.5';
 
-        // 模糊识别提示门禁条（如果识别出了作品）
+        // 模糊识别提示门禁条（仅在未锁定任何作品时才展现一次，一旦锁定后绝不再次弹出来要锁）
         let fuzzyGateHtml = '';
-        if (data.detected_work && data.detected_work !== '原创灵感脑洞' && data.detected_work !== '原创脑洞探讨') {
+        if (!currentLockedWork && data.detected_work && data.detected_work !== '原创灵感脑洞' && data.detected_work !== '原创脑洞探讨') {
           const lockBtnId = `btn-lock-${turnIndex}`;
           fuzzyGateHtml = `
             <div class="p-2.5 sm:p-3 bg-gradient-to-r from-amber-950/80 via-slate-900 to-indigo-950/80 border border-amber-500/40 rounded-xl flex items-center justify-between flex-wrap gap-2 text-xs shadow-sm">
@@ -1827,7 +1931,7 @@
 
         turnBox.innerHTML = fuzzyGateHtml + speechesHtml + summaryHtml;
         feed.appendChild(turnBox);
-        turnBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollBrainstormToBottom(true);
 
       } catch (e) {
         const loadEl = document.getElementById('bs-loading-bubble');
@@ -1845,10 +1949,10 @@
     }
 
     function lockConfirmWork(workName, btnId) {
-      currentLockedWork = workName;
+      setLockedWork(workName);
       const el = document.getElementById(btnId);
       if (el) {
-        el.outerHTML = `<span class="bg-emerald-950/90 border border-emerald-600/60 text-emerald-300 px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 shadow-sm"><i class="fa-solid fa-lock text-emerald-400"></i> 已锁定《${escapeHtml(workName)}》全案背景</span>`;
+        el.outerHTML = `<span class="bg-emerald-950/90 border border-emerald-600/60 text-emerald-300 px-2.5 py-1 rounded-lg text-[11px] font-bold flex items-center gap-1 shadow-sm"><i class="fa-solid fa-lock text-emerald-400"></i> 已锁定背景</span>`;
       }
     }
 
@@ -2444,7 +2548,7 @@
   </script>
 
   <!-- 移动端专属 iOS 底部沉浸导航栏 -->
-  <nav class="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/80 px-2 py-1 flex items-center justify-around text-[10px]" style="padding-bottom: max(env(safe-area-inset-bottom), 8px);">
+  <nav id="mobile-bottom-nav" class="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-slate-950/90 backdrop-blur-xl border-t border-slate-800/80 px-2 py-1 flex items-center justify-around text-[10px]" style="padding-bottom: max(env(safe-area-inset-bottom), 8px);">
     <button onclick="switchTab('brainstorm')" id="bnav-brainstorm" class="bnav-btn flex flex-col items-center justify-center py-1 px-3 text-cyan-400 font-bold transition">
       <i class="fa-solid fa-comments text-base mb-0.5 text-amber-400"></i>
       <span>专家复盘</span>

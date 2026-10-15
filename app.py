@@ -1168,6 +1168,9 @@ async def brainstorm_chat(req: BrainstormChatRequest, request: Request):
             "council_summary": "五大席位达成共识：该议题融合了老辣博弈、玄学性格、童真破局与沧桑立意，具备极高沉淀价值！"
         }
 
+    if req.locked_work and req.locked_work.strip():
+        data["detected_work"] = req.locked_work.strip()
+
     return data
 
 @app.post("/api/gacha")
